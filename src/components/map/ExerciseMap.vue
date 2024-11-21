@@ -49,12 +49,21 @@ const loadMap = () => {
   };
 
   map.value = new window.kakao.maps.Map(container, options);
+
+  // 타일로드 이벤트 추가하기
+  kakao.maps.event.addListener(map.value, 'tilesloaded', tilesLoad)
+
   loadMarker();
 };
+
+
+var markers = [];
 
 // 지정한 위치에 마커 불러오기
 // 지정한 위치에 여러 개의 마커 생성하기
 const loadMarker = () => {
+  // 중복 마커 삭제
+  clearMarker();
   if (!groupStore.groups || groupStore.groups.length === 0) return;
 
   // InfoWindow를 재사용하도록 초기화
@@ -82,9 +91,30 @@ const loadMarker = () => {
 
     // 지도에 마커 추가
     marker.setMap(map.value);
+    // 마커 배열에 추가.
+    markers.push(marker);
   });
 };
 
+// 마커 초기화
+function clearMarker(){
+  for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(map.value);
+  }
+  markers = [];
+}
+
+// 카카오 지도 타일이 로드된 뒤 작동방식
+const tilesLoad = function(){
+  var bounds = map.value.getBounds();
+  var swLatLon = bounds.getSouthWest();
+  searchCondition.value.bottom = swLatLon.getLat();
+  searchCondition.value.left = swLatLon.getLng();
+  var neLatLon = bounds.getNorthEast();
+  searchCondition.value.top = neLatLon.getLat();
+  searchCondition.value.right = neLatLon.getLng();
+  loadMarker();
+}
 
 // 컴포넌트가 마운트되었을 때 지도 출력
 onMounted(() => {

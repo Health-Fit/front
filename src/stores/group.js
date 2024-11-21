@@ -15,7 +15,6 @@ export const useGroupStore = defineStore('group', () => {
 	"top" : searchCondition.top,
 		});
 		groups.value = response.data;
-		console.log(response.data);
 	}
 
   return { groups, getGroups };
