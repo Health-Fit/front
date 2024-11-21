@@ -1,6 +1,7 @@
 <template>
   <div class="header-nav">
     <RouterLink class="logo" :to="{ name: 'home' }">Health GO!</RouterLink>
+    
     <div class="auth-links">
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }">로그인/회원가입</RouterLink>
       <RouterLink v-if="store.isLoggedIn" :to="{ name: 'profile' }">{{ store.member.nickname}}님!</RouterLink>

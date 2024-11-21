@@ -1,7 +1,9 @@
 <template>
     <div class="home-container">
       <h2>추천 영상</h2>
-      
+
+      <ExerciseMap>맵</ExerciseMap>
+
       <div class="filter-options">
         <div class="filter-group">
           <label for="sort">정렬:</label>
@@ -46,7 +48,7 @@
   <script setup>
   import { ref, computed, watch } from 'vue';
   import { useVideoStore } from '@/stores/video'; 
-  
+  import ExerciseMap from '@/components/map/ExerciseMap.vue';
   
   const videoStore = useVideoStore();
   
