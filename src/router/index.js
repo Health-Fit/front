@@ -1,5 +1,6 @@
 import Login from '@/components/user/Login.vue'
-import SignUp from '@/components/user/SignUp.vue'
+import Profile from '@/components/user/Profile.vue'
+import KakaoRedirect from '@/components/user/redirect/KakaoRedirect.vue'
 import HomeView from '@/views/HomeView.vue'
 import VideoView from '@/views/VideoView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -13,19 +14,24 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path:'/login',
-      name:'login',
-      component:Login,
+      path: '/login',
+      name: 'login',
+      component: Login,
     },
     {
-      path:'/video/:id',
-      name:'video-view',
-      component:VideoView,
+      path: '/video/:id',
+      name: 'video-view',
+      component: VideoView,
     },
     {
-      path:'/signup',
-      name:'signup',
-      component:SignUp,
+      path: '/profile',
+      name: 'profile',
+      component: Profile,
+    },
+    {
+      path: '/kakao/redirect',
+      name: 'kakaoRedirect',
+      component: KakaoRedirect,
     },
   ],
 })

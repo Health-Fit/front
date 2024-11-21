@@ -1,15 +1,14 @@
 <template>
   <div>
-    <HeaderNav/>
-    <routerView/>
+    <HeaderNav />
+    <RouterView />
   </div>
 </template>
 
 <script setup>
-  import HeaderNav from './components/common/HeaderNav.vue';
-  
+import { RouterView } from 'vue-router';
+import HeaderNav from './components/common/HeaderNav.vue';
+
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

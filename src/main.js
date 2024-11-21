@@ -10,3 +10,5 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+
+window.Kakao.init("4d17dc663675da11fb32c996f3c39c22")

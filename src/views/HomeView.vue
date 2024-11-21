@@ -2,10 +2,27 @@
     <div class="home-container">
       <h2>추천 영상</h2>
       
-      <div>
-        <button v-for="category in categories"></button>
+      <div class="filter-options">
+        <div class="filter-group">
+          <label for="sort">정렬:</label>
+          <select id="sort" v-model="selectedSort" @change="applyFilters">
+            <option value="all">전체</option>
+            <option value="mostViews">조회수 높은 순</option>
+            <option value="leastViews">조회수 낮은 순</option>
+          </select>
+        </div>
+  
+        <div class="filter-group">
+          <label for="category">카테고리:</label>
+          <select id="category" v-model="selectedCategory" @change="applyFilters">
+            <option value="all">모든 카테고리</option>
+            <option value="whole">전신운동</option>
+            <option value="low">하체</option>
+            <option value="up">상체</option>
+          </select>
+        </div>
       </div>
-      
+  
       <div class="video-grid">
         <div v-for="video in filteredVideos" :key="video.id" class="video-card">
           <RouterLink :to="{ name: 'video-view', params: { id: video.id } }">
@@ -29,6 +46,7 @@
   <script setup>
   import { ref, computed, watch } from 'vue';
   import { useVideoStore } from '@/stores/video'; 
+  
   
   const videoStore = useVideoStore();
   
