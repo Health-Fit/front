@@ -38,7 +38,7 @@ const router = createRouter({
       path: '/map',
       name: 'map',
       component: ExerciseMap,
-    }
+    },
   ],
 })
 
