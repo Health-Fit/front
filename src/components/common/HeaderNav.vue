@@ -6,6 +6,7 @@
       <input type="text" placeholder="검색어를 입력하세요" class="search-input" />
       <button class="search-button">검색</button>
     </div>
+    
     <div class="auth-links">
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }">로그인/회원가입</RouterLink>
       <RouterLink v-if="store.isLoggedIn" :to="{ name: 'profile' }">{{ store.member.nickname }}님!</RouterLink>

@@ -1,6 +1,7 @@
 import Login from '@/components/user/Login.vue'
 import Profile from '@/components/user/Profile.vue'
 import KakaoRedirect from '@/components/user/redirect/KakaoRedirect.vue'
+import ExerciseMap from '@/components/map/ExerciseMap.vue'
 import HomeView from '@/views/HomeView.vue'
 import VideoView from '@/views/VideoView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -33,6 +34,11 @@ const router = createRouter({
       name: 'kakaoRedirect',
       component: KakaoRedirect,
     },
+    {
+      path: '/map',
+      name: 'map',
+      component: ExerciseMap,
+    }
   ],
 })
 
