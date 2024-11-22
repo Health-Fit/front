@@ -16,7 +16,6 @@ export const useVideoChatStore = defineStore('videoChat', () => {
     };
 
     const sendChat = async function (data) {
-        console.log(`/chats/${data.exerciseVideoId}`)
         await apiClient.post(`/chats/${data.exerciseVideoId}`, data);
       };
 

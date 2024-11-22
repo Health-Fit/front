@@ -1,27 +1,17 @@
 <template>
   <div class="home-container">
-    <h2>추천 영상</h2>
-
+    <h2>운동 메이트 찾기</h2>
     <ExerciseMap>맵</ExerciseMap>
     <GroupDetail></GroupDetail>
 
     <div class="filter-options">
       <div class="filter-group">
-        <label for="sort">정렬:</label>
-        <select id="sort" v-model="selectedSort" @change="applyFilters">
-          <option value="all">전체</option>
-          <option value="mostViews">조회수 높은 순</option>
-          <option value="leastViews">조회수 낮은 순</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
         <label for="category">카테고리:</label>
-        <select id="category" v-model="selectedCategory" @change="applyFilters">
+        <select v-model="selectedCategory">
           <option value="all">모든 카테고리</option>
-          <option value="whole">전신운동</option>
-          <option value="low">하체</option>
-          <option value="up">상체</option>
+          <option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
         </select>
       </div>
     </div>
@@ -31,7 +21,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useVideoStore } from '@/stores/video';
 import { useCategoryStore } from '@/stores/category';
 import ExerciseMap from '@/components/map/ExerciseMap.vue';
@@ -41,33 +31,23 @@ import ExerciseVideoList from '@/components/videos/ExerciseVideoList.vue';
 const videoStore = useVideoStore();
 const categoryStore = useCategoryStore();
 
-const selectedSort = ref('all');
-const selectedCategory = ref('all');
+const selectedCategory = ref('all'); // 선택된 카테고리 상태 관리
 
-const filteredVideos = computed(() => {
-  let sortedVideos = [...videoStore.videos];
+const applyFilters = (categoryId) => {
+  categoryStore.changeCategory(categoryId); // 카테고리 변경
+  videoStore.getVideos(categoryId);         // 비디오 목록 갱신
+};
 
-  if (selectedCategory.value !== 'all') {
-    sortedVideos = sortedVideos.filter(
-      (video) => video.category === selectedCategory.value
-    );
-  }
-
-  if (selectedSort.value === 'mostViews') {
-    sortedVideos.sort((a, b) => b.views - a.views);
-  } else if (selectedSort.value === 'leastViews') {
-    sortedVideos.sort((a, b) => a.views - b.views);
-  }
-
-  return sortedVideos;
+// 선택된 카테고리 값 변경을 감지
+watch(selectedCategory, (newCategoryId) => {
+  applyFilters(newCategoryId);
 });
-
-const applyFilters = () => {};
 
 onMounted(() => {
-  categoryStore.getCategories();
+  categoryStore.getCategories(); // 카테고리 데이터 로드
 });
 </script>
+
 
 <style scoped>
 .home-container {

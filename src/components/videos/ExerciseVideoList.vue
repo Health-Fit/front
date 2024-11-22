@@ -17,13 +17,15 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useVideoStore } from '@/stores/video';
+import { useCategoryStore } from '@/stores/category';
 import { useRouter } from 'vue-router';
 
 const videoStore = useVideoStore();
+const categoryStore = useCategoryStore();
 const router = useRouter();
 
 onMounted(() => {
-    videoStore.getVideos(null, null);
+    videoStore.getVideos(categoryStore.selectedCategoryId.value);
 })
 
 const goToVideo = async (id) => {
