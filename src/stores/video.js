@@ -6,10 +6,13 @@ export const useVideoStore = defineStore('video', () => {
 
   const videos = ref([]);
 
-  const getVideos = async function (categoryId, searchValue) {
+  const getVideos = async function (categoryId) {
+    if (categoryId === 'all') {
+      categoryId = 0
+    }
     const response = await apiClient.post('/videos', {
       categoryId: categoryId,
-      searchValue: searchValue
+      searchValue: null
     });
     videos.value = response.data;
   };
