@@ -3,25 +3,31 @@ import { defineStore } from 'pinia';
 import apiClient from './apiClient';
 
 export const useVideoStore = defineStore('video', () => {
-  
+
   const videos = ref([]);
 
-  const getVideos = async function(categoryId, searchValue) {
-    try {
-        const response = await apiClient.post('/videos', {
-            categoryId: categoryId,
-            searchValue: searchValue
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching videos:', error);
-        throw error; 
-    }
-};
-
-  const getVideoById = (videoId) => {
-    return videos.value.find(video => video.id === videoId);
+  const getVideos = async function (categoryId, searchValue) {
+    const response = await apiClient.post('/videos', {
+      categoryId: categoryId,
+      searchValue: searchValue
+    });
+    videos.value = response.data;
   };
 
-  return { videos, getVideos, getVideoById };
+  const video = ref({})
+
+  const getVideoById = async function (id) {
+    const response = await apiClient.get(`/videos/${id}`);
+    video.value = response.data;
+  };
+
+  const getThumbnailUrl = function (videoUrl) {
+    return `https://img.youtube.com/vi/${videoUrl}/maxresdefault.jpg`;
+  }
+
+  const getPlayer = function(videoUrl) {
+    return `https://www.youtube.com/embed/${videoUrl}`;
+  }
+
+  return { videos, getVideos, video, getVideoById, getThumbnailUrl, getPlayer };
 });

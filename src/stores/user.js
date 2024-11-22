@@ -27,15 +27,10 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const getKakaoToken = async function (code) {
-
-    console.log("code:",code)
-
     try {
       // 백엔드로 code를 GET 요청 (쿼리 파라미터로 전달)
       const response = await apiClient.get(`/auth/login/kakao?code=${code}`);
       
-      console.log(response)
-
       // 응답에서 JWT 및 사용자 정보 추출
       const { jwt, member: memberData } = response.data;
       const { refreshToken, accessToken } = jwt;

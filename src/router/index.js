@@ -20,7 +20,7 @@ const router = createRouter({
       component: Login,
     },
     {
-      path: '/video/:id',
+      path: '/videos/:id',
       name: 'video-view',
       component: VideoView,
     },
