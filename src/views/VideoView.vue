@@ -1,136 +1,110 @@
 <template>
-    <div class="video-view-container">
-      <!-- 유튜브 플레이어 -->
-      <div class="video-player">
-        <iframe
-          :src="video.url"
-          frameborder="0"
-          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-          class="video-frame"
-        ></iframe>
+  <div>
+    <!-- 유튜브 플레이어 -->
+    <div>
+      <iframe :src="videoStore.getPlayer(videoStore.video.url)" frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+        class="video-frame"></iframe>
+    </div>
+
+    <!-- 실시간 채팅 조회 -->
+    <div>
+      <div>
+        <ul>
+          <li v-for="chat in videoChatStore.chats" :key="chat.id">
+            <strong>{{ chat.nickname }}</strong>: {{ chat.message }}
+          </li>
+        </ul>
       </div>
-  
-      <!-- 비디오 정보 -->
-      <div class="video-info">
-        <h2 class="video-title">{{ video.title }}</h2>
-        <div class="video-details">
-          <p>채널 명: <strong>{{ video.channel }}</strong></p>
-          <p>조회수: <strong>{{ video.views }}</strong> · 업로드된날짜: <strong>{{ video.uploaded }}</strong></p>
-        </div>
-  
-        <!-- 비디오 설명 -->
-        <div class="description">
-          <h3>설명</h3>
-          <p>{{ video.description }}</p>
-        </div>
+      <div>
+        <input type="text" placeholder="채팅..." v-model="newChatMessage" @keyup.enter="sendChatMessage"
+          :disabled="!userStore.isLoggedIn" />
+        <button @click="sendChatMessage" :disabled="!userStore.isLoggedIn">전송</button>
       </div>
     </div>
-  
+
+    <!-- 비디오 정보 -->
+    <div>
+      <h2>{{ videoStore.video.title }}</h2>
+      <div>
+        <p>채널 명: <strong>{{ videoStore.video.title }}</strong></p>
+        <p>조회수: <strong>{{ videoStore.video.viewCnt }}</strong> · 업로드된날짜: <strong>{{ videoStore.video.regDate
+            }}</strong>
+        </p>
+      </div>
+
+      <!-- 비디오 설명 -->
+      <div>
+        <h3>설명</h3>
+        <p>{{ videoStore.video.url }}</p>
+      </div>
+    </div>
+
     <!-- 리뷰 정보 화면 -->
-    <Review :videoId="video.id" />
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  import { useRoute } from 'vue-router';
-  import { useVideoStore } from '@/stores/video'; 
-  import Review from '@/components/videos/Review.vue';
-  
-  const videoStore = useVideoStore();
-  
-  const route = useRoute();
-  const videoId = route.params.id;
-  
-  const video = ref({});
-  
-  onMounted(() => {
-    video.value = videoStore.getVideoById(parseInt(videoId));
-  });
-  </script>
-  
-  <style scoped>
-  .video-view-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-    justify-content: center;
-    padding: 30px;
-  }
-  
-  .video-player {
-    flex: 2;
-    max-width: 800px;
-    background-color: #000;
-    border-radius: 8px;
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
-  }
-  
-  .video-frame {
-    width: 100%;
-    height: 450px;
-    border-radius: 8px;
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
-  }
-  
-  .video-info {
-    flex: 1;
-    max-width: 350px;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .video-info:hover {
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
-  }
-  
-  .video-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-  }
-  
-  .video-details {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 20px;
-  }
-  
-  .description {
-    font-size: 16px;
-    color: #333;
-  }
-  
-  .description h3 {
-    font-size: 18px;
-    color: #333;
-    margin-bottom: 10px;
-  }
-  
-  .description p {
-    line-height: 1.6;
-    color: #555;
-  }
-  
-  @media (max-width: 768px) {
-    .video-view-container {
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
+    <Review :videoId="videoStore.video.id" />
+  </div>
+</template>
+
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { useUserStore } from '@/stores/user';
+import { useVideoStore } from '@/stores/video';
+import { useVideoChatStore } from '@/stores/videoChat';
+import Review from '@/components/videos/Review.vue';
+
+const userStore = useUserStore();
+const videoStore = useVideoStore();
+const videoChatStore = useVideoChatStore();
+
+const route = useRoute();
+const videoId = route.params.id;
+
+onMounted(() => {
+  // 비디오 정보 가져오기
+  videoStore.getVideoById(parseInt(videoId));
+
+  // 실시간 채팅 데이터 가져오기 (롱 폴링)
+  const fetchChats = async () => {
+    try {
+      const lastTimestamp = new Date().toISOString();
+      await videoChatStore.getChats(videoId, lastTimestamp);
+      fetchChats(); // 응답이 오면 바로 다시 호출
+    } catch (error) {
+      console.error("채팅 데이터를 가져오는 중 오류 발생:", error);
+      // 에러 발생 시 일정 시간 대기 후 재시도
+      setTimeout(fetchChats, 3000);
     }
-  
-    .video-player {
-      max-width: 100%;
-    }
-  
-    .video-info {
-      max-width: 100%;
-      padding: 15px;
-    }
+  };
+
+  fetchChats();
+});
+
+const newChatMessage = ref("");
+
+const sendChatMessage = async () => {
+  if (!newChatMessage.value.trim()) {
+    console.error("빈 메시지는 전송할 수 없습니다.");
+    return;
   }
-  </style>
-  
+
+  try {
+    const chatData = {
+      exerciseVideoId: parseInt(videoId),
+      memberId: userStore.member.id,
+      nickname: userStore.member.nickname,
+      message: newChatMessage.value.trim(),
+      sentAt: new Date().toISOString().slice(0, 19),
+    };
+
+    await videoChatStore.sendChat(chatData);
+    newChatMessage.value = ""; // 메시지 입력 필드 초기화
+  } catch (error) {
+    console.error("채팅 전송 실패:", error);
+  }
+};
+
+</script>
+
+<style scoped></style>
