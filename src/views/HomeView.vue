@@ -1,4 +1,5 @@
 <template>
+
     <div class="home-container">
       <h2>추천 영상</h2>
 
@@ -25,23 +26,7 @@
         </div>
       </div>
   
-      <div class="video-grid">
-        <div v-for="video in filteredVideos" :key="video.id" class="video-card">
-          <RouterLink :to="{ name: 'video-view', params: { id: video.id } }">
-            <div class="card-wrapper">
-              <img :src="video.thumbnail" :alt="video.title" class="video-thumbnail" />
-              <div class="video-info">
-                <img :src="video.channelThumbnail" alt="Channel" class="channel-thumbnail" />
-                <div class="video-details">
-                  <p class="video-title">{{ video.title }}</p>
-                  <p class="video-channel">{{ video.channel }}</p>
-                  <p class="video-stats">{{ video.views }} views · {{ video.uploaded }}</p>
-                </div>
-              </div>
-            </div>
-          </RouterLink>
-        </div>
-      </div>
+      <ExerciseVideoList />
     </div>
   </template>
   
@@ -49,6 +34,7 @@
   import { ref, computed, watch } from 'vue';
   import { useVideoStore } from '@/stores/video'; 
   import ExerciseMap from '@/components/map/ExerciseMap.vue';
+  import ExerciseVideoList from '@/components/videos/ExerciseVideoList.vue'
   
   const videoStore = useVideoStore();
   
