@@ -36,12 +36,46 @@
 import { ref, onMounted, watch } from 'vue';
 import { useGroupStore } from '@/stores/group';
 import { useCategoryStore } from '@/stores/category';
+import { useSearchStore } from '@/stores/search';
 
 const groupStore = useGroupStore();
 const categoryStore = useCategoryStore();
+const searchStore = useSearchStore();
 
 // map 객체 설정
 const map = ref(null);
+// 주소-좌표 변환 객체 생성
+const geocoder = ref(null);
+
+// 검색 조건이 바뀐경우 (즉 검색된 경우)
+// watch(searchStore.searchCondition.value, () => {
+//   console.log(searchStore.searchCondition);
+//   searchAddress(searchStore.searchCondition.address);
+// });
+
+watch(
+  () => searchStore.searchCondition,
+  (newCondition) => {
+    console.log('검색 조건 변경됨:', newCondition);
+    searchAddress(newCondition.value.address);
+  },
+  { deep: true }
+);
+
+const searchAddress = (query) => {
+  console.log(query);
+  geocoder.value.addressSearch(query, (result, status) => {
+    // 주소 검색이 괜찮았다면
+    if (status === kakao.maps.services.Status.OK) {
+      const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+
+      // 지도 중심 이동
+      map.value.setCenter(coords);
+    } else {
+      alert('검색 결과가 없습니다.');
+    }
+  });
+};
 
 const searchCondition = ref({
   cateogryId: -1,
@@ -62,7 +96,7 @@ watch(searchCondition.value, () => {
 const loadScript = () => {
   const script = document.createElement('script');
   script.src =
-    '//dapi.kakao.com/v2/maps/sdk.js?appkey=4d17dc663675da11fb32c996f3c39c22&autoload=false';
+    '//dapi.kakao.com/v2/maps/sdk.js?appkey=4d17dc663675da11fb32c996f3c39c22&autoload=false&libraries=services';
   script.onload = () => window.kakao.maps.load(loadMap);
 
   document.head.appendChild(script);
@@ -103,6 +137,8 @@ const initializeMap = (latitude, longitude, container) => {
 
   // map 변수에 카카오 지도를 할당
   map.value = new window.kakao.maps.Map(container, options);
+  // 지오 코더 기능 할당
+  geocoder.value = new window.kakao.maps.services.Geocoder();
 
   // 타일로드 이벤트 추가하기
   kakao.maps.event.addListener(map.value, 'tilesloaded', tilesLoad);
@@ -190,8 +226,9 @@ const tilesLoad = function () {
 // 컴포넌트가 마운트되었을 때 지도 출력
 onMounted(() => {
   groupStore.getGroups(searchCondition.value);
-  if (window.kakao && window.kakao.maps) {
+  if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
     loadMap();
+    geocoder.value = new web.kakao.maps.services.Geocoder();
   } else {
     loadScript();
   }
