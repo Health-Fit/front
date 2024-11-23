@@ -53,10 +53,10 @@ const geocoder = ref(null);
 //   searchAddress(searchStore.searchCondition.address);
 // });
 
+// 검색 조건을 확인하고 해당 주소를 활용해서 화면 찾기
 watch(
   () => searchStore.searchCondition,
   (newCondition) => {
-    console.log('검색 조건 변경됨:', newCondition);
     searchAddress(newCondition.value.address);
   },
   { deep: true }
@@ -96,7 +96,7 @@ watch(searchCondition.value, () => {
 const loadScript = () => {
   const script = document.createElement('script');
   script.src =
-    '//dapi.kakao.com/v2/maps/sdk.js?appkey=4d17dc663675da11fb32c996f3c39c22&autoload=false&libraries=services';
+  `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_API_KEY}&autoload=false&libraries=services`
   script.onload = () => window.kakao.maps.load(loadMap);
 
   document.head.appendChild(script);
@@ -228,7 +228,7 @@ onMounted(() => {
   groupStore.getGroups(searchCondition.value);
   if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
     loadMap();
-    geocoder.value = new web.kakao.maps.services.Geocoder();
+    geocoder.value = new kakao.maps.services.Geocoder();
   } else {
     loadScript();
   }

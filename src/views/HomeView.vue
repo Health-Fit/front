@@ -1,6 +1,7 @@
 <template>
   <div class="home-container">
     <h2>운동 메이트 찾기</h2>
+    <RouterLink :to="{name:'groupadd'}">그룹 추가하기</RouterLink>
     <ExerciseMap>맵</ExerciseMap>
     <GroupDetail></GroupDetail>
 
