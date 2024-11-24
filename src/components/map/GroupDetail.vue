@@ -1,6 +1,7 @@
 <template>
-  <div v-if="isShow">
-    <h1>그룹 정보</h1>
+  <div >
+    <template v-if="groupStore.isShow">
+      <h1>그룹 정보</h1>
     <img :src="categoryImgUrl" height="50px">
     <p>그룹 명 : {{ groupStore.group.name }}</p>
     <p>그룹 설명 : {{ groupStore.group.descript }}</p>
@@ -33,6 +34,8 @@
       <!-- CSS로 좌측 메뉴 숨기기 -->
       <div class="overlay"></div>
     </div>
+    </template>
+    
   </div>
 </template>
 
@@ -55,18 +58,14 @@ watch(
   () => groupStore.group.id,
   () => {
     if (groupStore.group) {
-      isShow.value = true;
       categoryImgUrl.value =
         '/src/assets/' +
         categoryStore.getCategoryString(groupStore.group.exerciseCategoryId) +
         '.png';
       createRouteURL();
       formatStartDate();
-    }else{
-    
     }
   }
-  
 );
 
 // 길찾기 URL schema 형식 이용

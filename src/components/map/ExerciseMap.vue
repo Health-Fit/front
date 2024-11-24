@@ -47,12 +47,6 @@ const map = ref(null);
 // 주소-좌표 변환 객체 생성
 const geocoder = ref(null);
 
-// 검색 조건이 바뀐경우 (즉 검색된 경우)
-// watch(searchStore.searchCondition.value, () => {
-//   console.log(searchStore.searchCondition);
-//   searchAddress(searchStore.searchCondition.address);
-// });
-
 // 검색 조건을 확인하고 해당 주소를 활용해서 화면 찾기
 watch(
   () => searchStore.searchCondition,
@@ -75,7 +69,6 @@ watch(
 );
 
 const searchAddress = (query) => {
-  console.log(query);
   geocoder.value.addressSearch(query, (result, status) => {
     // 주소 검색이 괜찮았다면
     if (status === kakao.maps.services.Status.OK) {
@@ -219,7 +212,6 @@ const loadMarker = () => {
 // 마커 초기화
 function clearMarker() {
   if (markers.value.length > 0){
-    console.log(markers.value)
     for (var i = 0; i < markers.value.length; i++) {
     markers.value[i].setMap(null);
   }

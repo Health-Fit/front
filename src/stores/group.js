@@ -20,12 +20,13 @@ export const useGroupStore = defineStore('group', () => {
       top: searchCondition.top,
     });
     groups.value = response.data;
+    isShow.value = false;
     group.value = {};
   };
 
   // 선택된 그룹 표시 기능
   const group = ref({});
-
+  const isShow = ref(false);
   // 선택된 그룹의 리더 정보
   const groupLeader = ref({});
 
@@ -35,7 +36,7 @@ export const useGroupStore = defineStore('group', () => {
   // 지도에서 그룹 선택하기 기능 수행
   const selectGroup = async function (selected) {
     group.value = selected;
-
+    isShow.value = true;
     // 그룹장 정보 가져오기
     const response = await apiClient.get(`/members/${group.value.leaderMemberId}`);
     groupLeader.value = response.data;
@@ -94,5 +95,5 @@ export const useGroupStore = defineStore('group', () => {
     groupForAdd.descript = "";
   }
 
-  return { groups, getGroups, group, groupLeader, groupMembers, selectGroup, joinGroup, groupForAdd, addGroup, clearGroupForAdd };
+  return { groups, getGroups, group, isShow, groupLeader, groupMembers, selectGroup, joinGroup, groupForAdd, addGroup, clearGroupForAdd };
 });

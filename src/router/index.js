@@ -8,6 +8,7 @@ import VideoView from '@/views/VideoView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import ProfileUpdateView from '@/views/ProfileUpdateView.vue'
 import SignupView from '@/views/SignupView.vue'
+import ProfileMyPageView from '@/views/ProfileMyPageView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,11 @@ const router = createRouter({
       path: '/profile',
       name: 'profileUpdate',
       component: ProfileUpdateView,
+    },
+    {
+      path: '/profile/mypage',
+      name: 'mypage',
+      component: ProfileMyPageView,
     },
     {
       path: '/kakao/redirect',
