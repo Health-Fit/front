@@ -29,7 +29,6 @@ onMounted(() => {
 })
 
 const goToVideo = async (id) => {
-    console.log('Navigating to video ID:', id); // 디버깅용 로그
     router.push({ name: 'video-view', params: { id } });
 };
 

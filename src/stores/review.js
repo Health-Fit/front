@@ -1,23 +1,34 @@
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import { defineStore } from 'pinia';
 import apiClient from './apiClient';
 
-
 export const useReviewStore = defineStore('review', () => {
-  const reviews = ref([]);
+  const state = reactive({
+    reviews: [],
+  });
 
   const getReviews = async function (videoId) {
-    const response = await apiClient.post(`/videos/reviews/${videoId}`, {
+    const response = await apiClient.post(`/reviews/${videoId}`, {
       orderBy: "reg_date",
       orderDir: "asc"
     });
-    reviews.value = response.data;
+    state.reviews = response.data;
   };
 
-  // Add a review (include userId)
-  const addReview = (videoId, review) => {
-    reviews.value.push({ ...review, videoId });
+  const addReview = async function (review) {
+    await apiClient.post(`/reviews`, review);
+    await getReviews(review.exerciseVideoId);
   };
 
-  return { reviews, getReviews, addReview };
+  const like = async function (data, videoId) {
+    await apiClient.put(`/reviews/like`, data);
+    await getReviews(videoId);
+  };
+
+  const block = async function (data, videoId) {
+    await apiClient.put(`/reviews/block`, data);
+    await getReviews(videoId);
+  };
+
+  return { state, getReviews, addReview, like, block };
 });
