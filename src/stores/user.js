@@ -15,6 +15,7 @@ export const useUserStore = defineStore('user', () => {
     profileImg: '',
     birth: '',
     tel: '',
+    descript: ''
   });
 
   // 카카오 로그인 요청 (리다이렉트)
@@ -30,35 +31,43 @@ export const useUserStore = defineStore('user', () => {
     try {
       // 백엔드로 code를 GET 요청 (쿼리 파라미터로 전달)
       const response = await apiClient.get(`/auth/login/kakao?code=${code}`);
-      
+
       // 응답에서 JWT 및 사용자 정보 추출
       const { jwt, member: memberData } = response.data;
       const { refreshToken, accessToken } = jwt;
-  
+
       // 로컬스토리지에 토큰 저장
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('accessToken', accessToken);
-  
+
       // 상태 갱신
       isLoggedIn.value = true;
+
       member.value = {
         id: memberData.id,
         name: memberData.name,
         nickname: memberData.nickname,
+        descript: memberData.descript,
         gender: memberData.gender,
         profileImg: memberData.profileImg,
         birth: memberData.birth,
         tel: memberData.tel,
       };
-  
-      // 홈 화면으로 이동
-      router.replace({ name: 'home' });
+
+      if (response.status === 200) {
+        // 로그인이면 -> 홈 화면으로 이동
+        router.replace({ name: 'home' });
+      } else if (response.status === 201) {
+        // 회원가입이면 -> 정보 입력창으로 이동
+        router.replace({ name: 'signup' });
+      }
+
     } catch (error) {
       console.error('카카오 토큰 처리 실패: ', error);
       // 에러 발생 시 로그인 페이지로 리다이렉트
       router.replace({ name: 'login' });
     }
-  };  
+  };
 
   const loginWithNaver = function () { };
 
@@ -79,5 +88,25 @@ export const useUserStore = defineStore('user', () => {
       });
   };
 
-  return { isLoggedIn, member, loginWithKakao, getKakaoToken, loginWithNaver, loginWithGoogle, logout };
+  const updateMember = async function (updatedMember) {
+    try {
+      const response = await apiClient.put('/members', updatedMember);
+
+      if (response.status === 200) {
+        member.value.nickname = updatedMember.nickname;
+        member.value.tel = updatedMember.tel;
+        member.value.profileImg = updatedMember.profileImg;
+        member.value.descript = updatedMember.descript;
+      }
+    } catch (error) {
+      console.error('사용자 정보 업데이트 실패 : ', error);
+    }
+  };
+
+  const setupMember = async function (signupInfo) {
+    await apiClient.post('/members', signupInfo);
+    member.value.nickname = signupInfo.nickname;
+  };
+
+  return { isLoggedIn, member, loginWithKakao, getKakaoToken, loginWithNaver, loginWithGoogle, logout, updateMember, setupMember };
 });

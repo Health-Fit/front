@@ -22,12 +22,10 @@ export const useReviewStore = defineStore('review', () => {
 
   const like = async function (data, videoId) {
     await apiClient.put(`/reviews/like`, data);
-    await getReviews(videoId);
   };
 
   const block = async function (data, videoId) {
     await apiClient.put(`/reviews/block`, data);
-    await getReviews(videoId);
   };
 
   return { state, getReviews, addReview, like, block };

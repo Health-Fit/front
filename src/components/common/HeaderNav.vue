@@ -20,7 +20,7 @@
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }"
         >로그인/회원가입</RouterLink
       >
-      <RouterLink v-if="store.isLoggedIn" :to="{ name: 'profile' }"
+      <RouterLink v-if="store.isLoggedIn" :to="{ name: 'profileUpdate' }"
         >{{ store.member.nickname }}님!</RouterLink
       >
       <button

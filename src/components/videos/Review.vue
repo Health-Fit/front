@@ -1,10 +1,10 @@
 <template>
   <div class="review-section">
-    <h3>리뷰</h3>
+    <h3>댓글 {{ reviews.length }}개</h3>
 
     <!-- 리뷰 작성 폼 -->
     <div class="review-form">
-      <textarea v-model="newReview.content" placeholder="리뷰를 작성해주세요" rows="4" class="review-input"></textarea>
+      <textarea v-model="newReview.content" placeholder="댓글 추가..." rows="4" class="review-input"></textarea>
 
       <!-- 별점 -->
       <div class="star-rating">
@@ -14,7 +14,7 @@
         </span>
       </div>
 
-      <button @click="submitReview" class="submit-button">리뷰 작성</button>
+      <button @click="submitReview" :disabled="!userStore.isLoggedIn" class="submit-button">댓글</button>
     </div>
 
     <!-- 리뷰 목록 -->
@@ -34,7 +34,7 @@
 
         <!-- 좋아요 / 싫어요 버튼 -->
         <div class="like-block">
-          <button @click="toggleLike(review.id, liked)" :class="{ liked: review.liked }">
+          <button @click="toggleLike(review.id)" :class="{ liked: review.liked }">
             👍 {{ review.likeCnt }}
           </button>
           <button @click="toggleBlock(review.id, blocked)" :class="{ blocked: review.blocked }">
@@ -63,7 +63,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useReviewStore } from '@/stores/review';
+import { useUserStore } from '@/stores/user';
 
+const userStore = useUserStore();
 const reviewStore = useReviewStore();
 
 const props = defineProps({
@@ -102,17 +104,25 @@ const formatDate = function (date) {
   return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 }
 
-const toggleLike = function (reviewId, status) {
-  reviewStore.like(
+const toggleLike = async function (reviewId) {
+  // 프론트엔드 상태 업데이트
+  const review = reviews.value.find(r => r.id === reviewId);
+  if (review) {
+    review.liked = !review.liked;
+    review.likeCnt += review.liked ? 1 : -1; // 좋아요 수 업데이트
+  }
+
+  // 백엔드로 요청 보내기
+  await reviewStore.like(
     {
       id: reviewId,
-      like: !status
+      like: review.liked
     },
     props.videoId
   );
-}
+};
 
-const toggleBlock = function (reviewId, status) {
+const toggleBlock = async function (reviewId) {
   reviewStore.block(
     {
       id: reviewId,
@@ -243,4 +253,30 @@ h3 {
   font-size: 14px;
   color: #777;
 }
+
+.submit-button:disabled {
+  background-color: #ddd; /* 비활성화된 버튼의 배경색 */
+  color: #aaa; /* 비활성화된 버튼의 텍스트 색 */
+  cursor: not-allowed; /* 비활성화된 상태에서 커서 */
+}
+
+.submit-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+  background-color: #45a049;
+}
+
+.submit-button:disabled:hover {
+  background-color: #ddd; /* 비활성화된 상태에서 hover 시 색상 */
+}
+
 </style>
