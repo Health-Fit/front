@@ -27,17 +27,19 @@
     <div>
       <h2>{{ videoStore.video.title }}</h2>
       <div>
-        <p>채널 명: <strong>{{ videoStore.video.title }}</strong></p>
-        <p>조회수: <strong>{{ videoStore.video.viewCnt }}</strong> · 업로드된날짜: <strong>{{ videoStore.video.regDate
-            }}</strong>
+        <p>{{ videoStore.video.viewCnt }}뷰 · {{ formatDate(videoStore.video.regDate)
+            }}
         </p>
+        <!-- 카테고리 출력 -->
+        <div>
+          <p>
+            <span v-for="(category, index) in videoStore.video.categories" :key="category.id">
+              {{ category.name }}<span v-if="index < videoStore.video.categories.length - 1">, </span>
+            </span>
+          </p>
+        </div>
       </div>
 
-      <!-- 비디오 설명 -->
-      <div>
-        <h3>설명</h3>
-        <p>{{ videoStore.video.url }}</p>
-      </div>
     </div>
 
     <!-- 리뷰 정보 화면 -->
@@ -103,6 +105,18 @@ const sendChatMessage = async () => {
   } catch (error) {
     console.error("채팅 전송 실패:", error);
   }
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 월은 0부터 시작하므로 1을 더해줍니다.
+  const day = date.getDate();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+
+  // 포맷을 'YYYY년 MM월 DD일 HH:mm' 형식으로 변환
+  return `${year}년 ${month}월 ${day}일 ${hours}시 ${minutes < 10 ? '0' + minutes : minutes}분 업로드`;
 };
 
 </script>

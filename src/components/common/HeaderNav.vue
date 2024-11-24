@@ -20,10 +20,9 @@
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }"
         >로그인/회원가입</RouterLink
       >
-
       <template v-if="store.isLoggedIn">
         <img :src="store.member.profileImg" class="user-thumbnail">
-      <RouterLink :to="{ name: 'profile' }"
+      <RouterLink :to="{ name: 'profileUpdate' }"
         >{{ store.member.nickname }}님!</RouterLink
       >
       </template>

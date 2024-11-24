@@ -24,13 +24,20 @@ export const useVideoStore = defineStore('video', () => {
     video.value = response.data;
   };
 
+  const exampleVideos = ref([]);
+
+  const getExampleVideos = async function () {
+    const response = await apiClient.get('/videos/ex');
+    exampleVideos.value = response.data;
+  };
+
   const getThumbnailUrl = function (videoUrl) {
     return `https://img.youtube.com/vi/${videoUrl}/maxresdefault.jpg`;
   }
 
-  const getPlayer = function(videoUrl) {
+  const getPlayer = function (videoUrl) {
     return `https://www.youtube.com/embed/${videoUrl}`;
   }
 
-  return { videos, getVideos, video, getVideoById, getThumbnailUrl, getPlayer };
+  return { videos, getVideos, video, getVideoById, getThumbnailUrl, getPlayer, exampleVideos, getExampleVideos };
 });
