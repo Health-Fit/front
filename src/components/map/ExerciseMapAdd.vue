@@ -137,8 +137,9 @@
     kakao.maps.event.addListener(map.value, 'click', function(mouseEvent) {        
     // 클릭한 위도, 경도 정보를 가져옵니다 
     var latlng = mouseEvent.latLng;
-    groupStore.groupForAdd.lat = latlng.getLat();
-    groupStore.groupForAdd.lon = latlng.getLng();
+    // 후에 저장을 위해 위도, 경도 정보를 가져온다.
+    groupStore.groupForAdd.lat = Math.round(latlng.getLat() * 1000000) / 1000000;
+    groupStore.groupForAdd.lon = Math.round(latlng.getLng() * 1000000) / 1000000;
     if (selectMarker){
         selectMarker.setPosition(latlng);
     }

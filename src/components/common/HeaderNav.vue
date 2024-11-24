@@ -20,9 +20,14 @@
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }"
         >로그인/회원가입</RouterLink
       >
-      <RouterLink v-if="store.isLoggedIn" :to="{ name: 'profile' }"
+
+      <template v-if="store.isLoggedIn">
+        <img :src="store.member.profileImg" class="user-thumbnail">
+      <RouterLink :to="{ name: 'profile' }"
         >{{ store.member.nickname }}님!</RouterLink
       >
+      </template>
+      
       <button
         v-if="store.isLoggedIn"
         @click="store.logout"
@@ -118,5 +123,12 @@ const searchAddress = function () {
 .logout-button {
   font-size: 18px;
   color: white;
+}
+
+.user-thumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 </style>

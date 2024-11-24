@@ -62,6 +62,18 @@ watch(
   { deep: true }
 );
 
+// 카테고리 조건을 확인하고 해당 카테고리만 가진 화면 찾기
+watch(
+  () => categoryStore.selectedCategoryId,
+  (newCategoryId) => {
+    if (newCategoryId === 'all'){
+      searchCondition.value.categoryId = 0;
+    }else{
+      searchCondition.value.categoryId = newCategoryId;
+    }
+  }
+);
+
 const searchAddress = (query) => {
   console.log(query);
   geocoder.value.addressSearch(query, (result, status) => {
@@ -78,8 +90,8 @@ const searchAddress = (query) => {
 };
 
 const searchCondition = ref({
-  cateogryId: -1,
-  time: '2023.11.11T23:11:00',
+  categoryId: 0,
+  time: '2023-11-11T23:11:00',
   left: 125.0,
   right: 127.0,
   bottom: 35.0,
@@ -87,8 +99,8 @@ const searchCondition = ref({
 });
 
 // 해당 SearchCondition이 변경되면 바로 검색을 진행할 수 있도록 함.
-watch(searchCondition.value, () => {
-  groupStore.getGroups(searchCondition.value);
+watch(searchCondition.value, async () => {
+  await groupStore.getGroups(searchCondition.value);
   loadMarker();
 });
 
@@ -144,7 +156,7 @@ const initializeMap = (latitude, longitude, container) => {
   kakao.maps.event.addListener(map.value, 'tilesloaded', tilesLoad);
 };
 
-var markers = [];
+const markers = ref([]);
 
 // 지정한 위치에 마커 불러오기
 // 지정한 위치에 여러 개의 마커 생성하기
@@ -200,16 +212,19 @@ const loadMarker = () => {
     // 지도에 마커 추가
     marker.setMap(map.value);
     // 마커 배열에 추가.
-    markers.push(marker);
+    markers.value.push(marker);
   });
 };
 
 // 마커 초기화
 function clearMarker() {
-  for (var i = 0; i < markers.length; i++) {
-    markers[i].setMap(map.value);
+  if (markers.value.length > 0){
+    console.log(markers.value)
+    for (var i = 0; i < markers.value.length; i++) {
+    markers.value[i].setMap(null);
   }
-  markers = [];
+  markers.value = [];
+  }
 }
 
 // 카카오 지도 타일이 로드된 뒤 작동방식

@@ -16,8 +16,10 @@ export const useCategoryStore = defineStore('category', () => {
     return category ? category.name : null; // id와 일치하는 name 반환, 없으면 null 반환
   };
   
-  const selectedCategoryId = ref(0);
 
+  // HomeView 선택된 카테고리
+  const selectedCategoryId = ref(0);
+  // HomeView에서 카테고리 변경시 변경됨
   const changeCategory = function(categoryId) {
     if (!categoryId) {
       selectedCategoryId.value = 0;

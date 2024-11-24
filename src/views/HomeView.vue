@@ -2,14 +2,12 @@
   <div class="home-container">
     <h2>운동 메이트 찾기</h2>
     <RouterLink :to="{name:'groupadd'}">그룹 추가하기</RouterLink>
-    <ExerciseMap>맵</ExerciseMap>
-    <GroupDetail></GroupDetail>
 
     <div class="filter-options">
       <div class="filter-group">
         <label for="category">카테고리:</label>
         <select v-model="selectedCategory">
-          <option value="all">모든 카테고리</option>
+          <option value='all'>모든 카테고리</option>
           <option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
             {{ category.name }}
           </option>
@@ -17,6 +15,8 @@
       </div>
     </div>
 
+    <ExerciseMap>맵</ExerciseMap>
+    <GroupDetail></GroupDetail>
     <ExerciseVideoList />
   </div>
 </template>
