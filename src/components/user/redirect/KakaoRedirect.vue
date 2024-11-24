@@ -12,16 +12,9 @@
   const route = useRoute();
   
   onMounted(() => {
-    // URL에서 code 추출
+    // URL에서 카카오 서버에서 받은 인가코드 추출
     const code = route.query.code;
-  
-    if (code) {
-      // user.js의 getKakaoToken 호출
-      store.getKakaoToken(code);
-    } else {
-      console.error('카카오 로그인 코드가 없습니다.');
-      // 필요한 경우, 에러 페이지로 리다이렉트
-    }
+    store.getKakaoToken(code);
   });
   </script>
   
