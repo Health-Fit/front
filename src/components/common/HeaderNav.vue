@@ -16,6 +16,8 @@
       </form>
     </div>
 
+    <RouterLink :to="{name:'mypage'}">마이페이지</RouterLink>
+
     <div class="auth-links">
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }"
         >로그인/회원가입</RouterLink
