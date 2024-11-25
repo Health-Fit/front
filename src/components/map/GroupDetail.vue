@@ -35,10 +35,10 @@
       </template>
       <p>시작 일자 : {{ formattedStartDate }}</p>
       <button @click="joinGroup">참가하기</button><br />
-      <button @click="showRoute(0)">자동차</button>
       <button @click="showRoute(1)">대중교통</button>
-      <button @click="showRoute(2)">도보</button>
-      <button @click="showRoute(3)">자전거</button>
+      <button @click="showRoute(0)">자동차</button>
+      <button @click="showRoute(3)">도보</button>
+      <button @click="showRoute(2)">자전거</button>
       <!-- 길찾기 화면 -->
       <div v-if="isRouteVisible" class="route-container">
         <iframe
@@ -101,8 +101,8 @@ watch(
         sky.value = `/src/assets/${weather.sky}.png`;
         pop.value = weather.pop;
       }
-
-      createRouteURL();
+      isRouteVisible.value = false;
+      //createRouteURL();
       formatStartDate();
     }
   }
@@ -151,7 +151,8 @@ const formatStartDate = () => {
 };
 
 // 길찾기 버튼 클릭 시 실행
-const showRoute = () => {
+const showRoute = (type) => {
+  createRouteURL(type);
   isRouteVisible.value = true;
 };
 
