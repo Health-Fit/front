@@ -77,7 +77,6 @@ const searchAddress = async function () {
   justify-content: space-between;
   background-color: #FFC300;
   padding: 10px 20px;
-  border-radius: 8px; /* 모서리를 둥글게 만듭니다 */
 }
 
 .logo-img {

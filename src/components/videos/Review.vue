@@ -51,7 +51,6 @@
             (수정됨: {{ formatDate(review.updateDate) }})
           </span>
         </div>
-
       </div>
     </div>
     <div v-else>
@@ -130,17 +129,17 @@ const toggleBlock = async function (reviewId) {
     },
     props.videoId);
 }
-
 </script>
 
 <style scoped>
-/* Your existing styles */
 .review-section {
   margin-top: 30px;
   padding: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 20px auto;
 }
 
 h3 {
@@ -198,6 +197,10 @@ h3 {
   margin-bottom: 10px;
   font-size: 16px;
   color: #555;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .review-user {
@@ -207,8 +210,8 @@ h3 {
 }
 
 .user-thumbnail {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   margin-right: 10px;
 }
@@ -238,6 +241,8 @@ h3 {
   padding: 5px 10px;
   margin-right: 5px;
   cursor: pointer;
+  border: none;
+  background: none;
 }
 
 .like-block .liked {
@@ -260,23 +265,7 @@ h3 {
   cursor: not-allowed; /* 비활성화된 상태에서 커서 */
 }
 
-.submit-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.submit-button:hover {
-  background-color: #45a049;
-}
-
 .submit-button:disabled:hover {
   background-color: #ddd; /* 비활성화된 상태에서 hover 시 색상 */
 }
-
 </style>
