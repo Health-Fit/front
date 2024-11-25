@@ -1,23 +1,19 @@
 <template>
   <div>
-    <h1>마이 페이지</h1>
+    <h1 class="main-header">마이 페이지</h1>
 
     <!-- 달력 생성 -->
     <div class="calendar">
       <div class="calendar-header">
-        <button @click="changeMonth(-1)">◀</button>
+        <button @click="changeMonth(-1)" class="calendar-nav-button">◀</button>
         <h2>{{ monthName }} {{ year }}</h2>
-        <button @click="changeMonth(1)">▶</button>
+        <button @click="changeMonth(1)" class="calendar-nav-button">▶</button>
       </div>
 
       <!-- 요일 헤더 -->
       <div class="weekday-header">
-        <div
-          v-for="(weekday, index) in weekdays"
-          :key="index"
-          class="weekday"
-          :class="{ sunday: index === 0, saturday: index === 6 }"
-        >
+        <div v-for="(weekday, index) in weekdays" :key="index" class="weekday"
+          :class="{ sunday: index === 0, saturday: index === 6 }">
           {{ weekday }}
         </div>
       </div>
@@ -25,36 +21,22 @@
       <!-- 날짜 그리드 -->
       <div class="calendar-grid">
         <!-- 빈 칸 -->
-        <div
-          v-for="n in firstDayOfMonth"
-          :key="'empty-' + n"
-          class="empty-day"
-        ></div>
+        <div v-for="n in firstDayOfMonth" :key="'empty-' + n" class="empty-day"></div>
 
         <!-- 실제 날짜 -->
-        <div
-          v-for="day in daysInMonth"
-          :key="day.date"
-          class="calendar-day"
-          :class="{
-            today: isToday(day),
-            'has-events': hasEvents(day),
-            sunday: isSunday(day),
-            saturday: isSaturday(day),
-          }"
-        >
+        <div v-for="day in daysInMonth" :key="day.date" class="calendar-day" :class="{
+          today: isToday(day),
+          'has-events': hasEvents(day),
+          sunday: isSunday(day),
+          saturday: isSaturday(day),
+        }">
           <!-- 날짜 숫자 -->
           <span class="day-number">{{ day.date }}</span>
-          <br />
           <!-- 일정 버튼 -->
           <div class="events">
             <div class="event-buttons">
-              <button
-                v-for="(event, index) in getEventsForDay(day)"
-                :key="index"
-                class="event-button"
-                @click.stop="showEventDetails(event)"
-              >
+              <button v-for="(event, index) in getEventsForDay(day)" :key="index" class="event-button"
+                @click.stop="showEventDetails(event)">
                 {{ event.title }}
               </button>
             </div>
@@ -65,29 +47,30 @@
 
     <!-- 선택한 일정 세부 사항 -->
     <div v-if="groupStore.selectedMyGroup" class="event-details">
-      <h1>그룹 정보</h1>
-      <img :src="categoryImgUrl" height="50px" />
-      <p>그룹 명 : {{ groupStore.selectedMyGroup.name }}</p>
-      <p>그룹 설명 : {{ groupStore.selectedMyGroup.descript }}</p>
-      <p>그룹장</p>
-      <img
-        :src="groupStore.selectedMyGroupLeader.profileImg"
-        class="user-thumbnail"
-      />
-      <p>멤버</p>
-      <template v-if="groupStore.selectedMyGroupMembers.length > 0">
-        <img
-          v-for="member in groupStore.selectedMyGroupMembers"
-          :src="member.profileImg"
-          :key="member.id"
-          class="user-thumbnail"
-        />
-      </template>
-      <template v-else>
-        <p>멤버 없음</p>
-      </template>
+      <h1 class="main-header">그룹 정보</h1>
+      <div class="group-info">
+        <img :src="categoryImgUrl" class="category-thumbnail" />
+        <div class="group-info-text">
+          <p><strong>그룹 명 :</strong> {{ groupStore.selectedMyGroup.name }}</p>
+          <p><strong>그룹 설명 :</strong> {{ groupStore.selectedMyGroup.descript }}</p>
+          <div class="group-leader">
+            <p><strong>그룹장 :</strong></p>
+            <img :src="groupStore.selectedMyGroupLeader.profileImg" class="user-thumbnail" />
+          </div>
+          <div class="group-members">
+            <p><strong>멤버 :</strong></p>
+            <template v-if="groupStore.selectedMyGroupMembers.length > 0">
+              <img v-for="member in groupStore.selectedMyGroupMembers" :src="member.profileImg" :key="member.id"
+                class="user-thumbnail" />
+            </template>
+            <template v-else>
+              <p>멤버 없음</p>
+            </template>
+          </div>
+        </div>
+      </div>
       <h3>채팅</h3>
-      <div>
+      <div class="chat-section">
         <!-- 여기에 채팅 창이 들어갈 것임 -->
       </div>
     </div>
@@ -242,20 +225,43 @@ onMounted(async () => {
 
 <style scoped>
 .user-thumbnail {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   margin-right: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .calendar {
   margin: 20px;
+  max-width: 800px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.calendar-nav-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.calendar-nav-button:hover {
+  background-color: #0056b3;
 }
 
 .weekday-header {
@@ -264,10 +270,12 @@ onMounted(async () => {
   text-align: center;
   font-weight: bold;
   margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #555;
 }
 
 .weekday {
-  padding: 5px;
+  padding: 10px;
 }
 
 .weekday.sunday {
@@ -281,7 +289,7 @@ onMounted(async () => {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  gap: 10px;
 }
 
 .empty-day {
@@ -292,10 +300,13 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ddd;
   position: relative;
-  height: 120px;
+  height: 100px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  transition: background-color 0.3s;
 }
 
 .calendar-day.today {
@@ -332,12 +343,43 @@ onMounted(async () => {
   color: white;
   border: none;
   padding: 8px;
+  border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.event-button:hover {
+  background-color: #388e3c;
 }
 
 .event-details {
   margin-top: 20px;
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.group-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.group-info-text {
+  color: #333;
+}
+
+.category-thumbnail {
+  width: 50px;
+  height: 50px;
+}
+
+.main-header {
+  font-size: 2rem;
+  color: #007bff;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
 }
 </style>
