@@ -93,7 +93,6 @@ watch(
 );
 
 const searchAddress = (query) => {
-  console.log(query);
   geocoder.value.addressSearch(query, (result, status) => {
     // 주소 검색이 괜찮았다면
     if (status === kakao.maps.services.Status.OK) {
@@ -227,9 +226,11 @@ const loadMarker = () => {
 
 // 마커 초기화
 function clearMarker() {
-  if (markers.value.length > 0) {
-    markers.value.forEach(marker => marker.setMap(null));
-    markers.value = [];
+  if (markers.value.length > 0){
+    for (var i = 0; i < markers.value.length; i++) {
+    markers.value[i].setMap(null);
+  }
+  markers.value = [];
   }
 }
 

@@ -18,17 +18,20 @@
       </form>
     </div>
 
+    <RouterLink :to="{ name: 'mypage' }">마이페이지</RouterLink>
+
     <div class="auth-links">
       <RouterLink v-if="!store.isLoggedIn" :to="{ name: 'login' }"
         >로그인/회원가입</RouterLink
       >
       <template v-if="store.isLoggedIn">
         <img :src="store.member.profileImg" class="user-thumbnail">
+
         <RouterLink :to="{ name: 'profileUpdate' }"
           >{{ store.member.nickname }}님!</RouterLink
         >
       </template>
-      
+
       <button
         v-if="store.isLoggedIn"
         @click="store.logout"
@@ -44,6 +47,10 @@
 import { ref } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useSearchStore } from '@/stores/search';
+import { useRouter, useRoute } from 'vue-router';
+
+const route = useRoute();
+const router = useRouter();
 
 const store = useUserStore();
 const searchStore = useSearchStore();
@@ -52,7 +59,11 @@ const searchStore = useSearchStore();
 const searchQuery = ref('');
 const searchCategory = ref(-1);
 // 주소 검색 진행
-const searchAddress = function () {
+const searchAddress = async function () {
+  // 다른 페이지에서 검색을 진행하면 메인 페이지에서 확인할 수 있게 보여주기.
+  if (route.path !== '/' && route.path !== '/groupadd') {
+    await router.push('/');
+  }
   searchStore.setSearchCondition(searchQuery.value, searchCategory.value);
   searchQuery.value = '';
   searchCategory.value = -1;
