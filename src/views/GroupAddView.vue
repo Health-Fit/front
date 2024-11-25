@@ -1,10 +1,10 @@
 <template>
   <div class="home-container">
-    <h2>운동 메이트 찾기</h2>
-    <ExerciseMapAdd />
-    <!-- 맵 컴포넌트 -->
-    <GroupDetailAdd />
-    <!-- 그룹 상세 컴포넌트 -->
+    <h2 class="title">운동 메이트 찾기</h2>
+    <ExerciseMapAdd class="map-component" />
+    <!-- 맵 컨포넌트 -->
+    <GroupDetailAdd class="group-detail-component" />
+    <!-- 그룹 상세 컨포넌트 -->
   </div>
 </template>
 
@@ -18,7 +18,7 @@ import { useCategoryStore } from '@/stores/category';
 const groupStore = useGroupStore();
 const categoryStore = useCategoryStore();
 
-// 컴포넌트가 마운트될 때 groupForAdd 초기화
+// 컨포넌트가 마우트되어야할 때 groupForAdd 초기화
 onMounted(() => {
   categoryStore.getCategories(); // 카테고리 데이터 로드
   // 그룹 데이터를 초기화합니다.
@@ -39,6 +39,46 @@ onMounted(() => {
 
 <style scoped>
 .home-container {
+  padding: 30px;
+  background-color: #f0f4f8;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 40px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  color: #0056b3;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.map-component {
+  margin-bottom: 20px;
+}
+
+.group-detail-component {
   padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+button {
+  padding: 10px 20px;
+  margin-top: 20px;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
 </style>
