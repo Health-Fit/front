@@ -2,6 +2,19 @@
   <div>
     <h1>그룹 정보 입력</h1>
     <form @submit.prevent="createGroup">
+      <div v-if="isWeatherOk">
+        <p>날씨정보</p>
+        <p>온도 : {{ tmp }}℃</p>
+        <img :src="sky" />
+        <p>강수확률 : {{ pop }}%</p>
+        <p v-if="pop >= 60">
+          날씨가 좋지 않을 예정이에요. 실내운동은 어떠세요?
+        </p>
+      </div>
+      <div v-else>
+        <p>날씨 정보가 없습니다.</p>
+      </div>
+
       <label for="group-category">카테고리 :</label>
       <select v-model="groupForAdd.exerciseCategoryId">
         <option
@@ -69,12 +82,35 @@
 import { ref, watch, onMounted } from 'vue';
 import { useGroupStore } from '@/stores/group';
 import { useCategoryStore } from '@/stores/category';
+import { useWeatherStore } from '@/stores/weather';
 
 const groupStore = useGroupStore();
 const categoryStore = useCategoryStore();
+const weatherStore = useWeatherStore();
 
-const groupForAdd = groupStore.groupForAdd; // Use store's reactive state directly
-const formattedDuration = ref(''); // For formatted duration like days, hours, minutes
+const groupForAdd = groupStore.groupForAdd;
+const formattedDuration = ref('');
+
+const isWeatherOk = ref(false);
+const tmp = ref('');
+const sky = ref('');
+const pop = ref('');
+
+// 날씨를 받아오는 함수
+const getWeather = async () => {
+  const weather = await weatherStore.getWeather(
+    groupStore.groupForAdd.lat,
+    groupStore.groupForAdd.lon,
+    groupForAdd.startDate
+  );
+
+  if (weather && weather.ok) {
+    isWeatherOk.value = weather.ok;
+    tmp.value = weather.tmp;
+    sky.value = `/src/assets/${weather.sky}.png`;
+    pop.value = weather.pop;
+  }
+};
 
 // 시간 차이를 계산하는 함수
 const calculateTimeDifference = () => {
@@ -110,9 +146,16 @@ const calculateTimeDifference = () => {
 
 // `watch`에서 반응형 상태 추적
 watch(
-  () => [groupForAdd.startDate, groupForAdd.endDate], // 추적할 데이터 지정
-  calculateTimeDifference // 변경 시 호출할 함수
+  () => [groupForAdd.startDate, groupForAdd.endDate],
+  () => {
+    // 시간차 계산
+    calculateTimeDifference();
+    // 날씨 받아오기
+    getWeather();
+  } // 변경 시 호출할 함수
 );
+
+watch(() => [groupForAdd.lat, groupForAdd.lon], getWeather);
 
 // 그룹 생성 함수
 const createGroup = async () => {

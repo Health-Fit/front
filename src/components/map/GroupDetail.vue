@@ -1,7 +1,15 @@
 <template>
   <div>
     <template v-if="groupStore.isShow">
-      <p>날씨정보 :</p>
+      <div v-if="isWeatherOk">
+        <p>날씨정보</p>
+        <p>온도 : {{ tmp }}℃</p>
+        <img :src="sky" />
+        <p>강수확률 : {{ pop }}%</p>
+      </div>
+      <div v-else>
+        <p>날씨 정보가 없습니다.</p>
+      </div>
 
       <h1>그룹 정보</h1>
       <img :src="categoryImgUrl" height="50px" />
@@ -65,21 +73,35 @@ const categoryImgUrl = ref('');
 const routeUrl = ref('');
 const formattedStartDate = ref('');
 
+const isWeatherOk = ref(false);
+const tmp = ref('');
+const sky = ref('');
+const pop = ref('');
+
 // group 선택이 변경된 것을 감지하여 표시
 watch(
   () => groupStore.group.id,
-  () => {
+  async () => {
     if (groupStore.group) {
       categoryImgUrl.value =
         '/src/assets/' +
         categoryStore.getCategoryString(groupStore.group.exerciseCategoryId) +
         '.png';
 
-      weatherStore.getWeather(
+      isWeatherOk.vlaue = false;
+
+      const weather = await weatherStore.getWeather(
         groupStore.group.lat,
         groupStore.group.lon,
         groupStore.group.startDate
       );
+      if (weather.ok) {
+        isWeatherOk.value = weather.ok;
+        tmp.value = weather.tmp;
+        sky.value = `/src/assets/${weather.sky}.png`;
+        pop.value = weather.pop;
+      }
+
       createRouteURL();
       formatStartDate();
     }
