@@ -61,7 +61,6 @@ onMounted(() => {
   background-color: #001d3d; /* 배경 색상을 #001D3D로 설정 */
   color: #ffffff; /* 텍스트 색상을 흰색으로 설정하여 가독성 유지 */
   padding: 20px;
-  border-radius: 8px;
 }
 
 .top-section {
