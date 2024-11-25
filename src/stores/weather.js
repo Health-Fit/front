@@ -6,10 +6,14 @@ import axios from 'axios';
 const API_URL = `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst`;
 const times = ['0200', '0500', '0800', '1100', '1400', '1700', '2000', '2300'];
 
+const sunny = '1'; // 맑음
+const many_cloudy = '3'; // 구름많음
+const cloudy = '4'; // 흐림
+
 export const useWeatherStore = defineStore('weather', () => {
   // 날씨 정보 받아오기
   const getWeather = function (lat, lon, startDate) {
-    const grid = dfs_xy_conv('toXY', lat, lon); // 좌표 변환
+    const grid = dfs_xy_conv(lat, lon); // 좌표 변환
     const currentDate = new Date().toISOString();
     const baseDate = formatDateToYYYYMMDD(currentDate); // 날짜 포맷
     const baseTime = roundToNearestTime(currentDate); // 가장 가까운 시간대 계산
@@ -32,14 +36,13 @@ export const useWeatherStore = defineStore('weather', () => {
         // 응답이 정상적인 경우
         if (response.status === 200 && response.data) {
           // 날씨 데이터 정리
-          console.log(response.data);
-          weather_data(response.data, startDate);
+          return weather_data(response.data, startDate);
         } else {
-          // 응답이 비정상적인 경우
+          return false;
         }
       })
       .catch((error) => {
-        // 요청 실패 시 에러 처리
+        return false;
       });
   };
 
@@ -51,6 +54,10 @@ export const useWeatherStore = defineStore('weather', () => {
     let closestTime = null;
     let minDiff = Number.MAX_VALUE;
 
+    let tmp = 0; // 기온
+    let sky = ''; // 하늘
+    let pop = 0; // 강수확률
+
     // startDate를 Date 객체로 변환
     const startDateObj = new Date(startDate);
 
@@ -58,7 +65,6 @@ export const useWeatherStore = defineStore('weather', () => {
     forecastItems.forEach((weatherData) => {
       const fcstDate = weatherData.fcstDate; // 날짜
       const fcstTime = weatherData.fcstTime; // 시간
-
       // fcstDate와 fcstTime을 Date 객체로 변환
       const forecastDateTime = new Date(
         `${fcstDate.slice(0, 4)}-${fcstDate.slice(4, 6)}-${fcstDate.slice(
@@ -69,10 +75,42 @@ export const useWeatherStore = defineStore('weather', () => {
 
       const diff = Math.abs(startDateObj - forecastDateTime);
 
-      if (diff < minDiff) {
+      if (diff <= minDiff) {
         minDiff = diff;
         closestDate = fcstDate;
         closestTime = fcstTime;
+
+        const curCat = weatherData.category.trim();
+        // 날씨 정보 받아오기
+        if (curCat == 'TMP' || curCat == 'SKY' || curCat == 'POP') {
+          switch (curCat) {
+            case 'TMP': // 기온
+              tmp = weatherData.fcstValue;
+              break;
+            case 'SKY': // 하늘
+              switch (weatherData.fcstValue) {
+                case sunny: // 맑음
+                  sky = 'sunny';
+                  break;
+                case many_cloudy: // 구름많음
+                  sky = 'manycloudy';
+                  break;
+                case cloudy: // 흐림
+                  sky = 'cloudy';
+                  break;
+                default:
+                  sky = '알수 없는 값입니다.';
+              }
+              break;
+            case 'POP': // 강수형태
+              pop = weatherData.fcstValue;
+              break;
+            default:
+              tmp = '알수 없는 값입니다.';
+              sky = '알수 없는 값입니다.';
+              pop = '알수 없는 값입니다.';
+          }
+        }
       }
     });
 
@@ -81,14 +119,20 @@ export const useWeatherStore = defineStore('weather', () => {
     const isFartherThanOneDay = minDiff >= oneDayInMillis;
 
     if (isFartherThanOneDay) {
-      console.log(
-        'Warning: The closest weather data is more than a day apart from the startDate.'
-      );
+      return {
+        ok: false,
+        tmp: tmp,
+        sky: sky,
+        pop: pop,
+      };
     } else {
-      console.log('The closest weather data is:', closestDate, closestTime);
+      return {
+        ok: true,
+        tmp: tmp,
+        sky: sky,
+        pop: pop,
+      };
     }
-
-    return { closestDate, closestTime, isFartherThanOneDay }; // 반환 값에 추가
   }
 
   var RE = 6371.00877; // 지구 반경(km)
@@ -108,7 +152,7 @@ export const useWeatherStore = defineStore('weather', () => {
   var YO = 136; // 기1준점 Y좌표(GRID)
 
   // LCC DFS 좌표변환 ( code : "toXY"(위경도->좌표, v1:위도, v2:경도), "toLL"(좌표->위경도,v1:x, v2:y) )
-  function dfs_xy_conv(code, v1, v2) {
+  function dfs_xy_conv(v1, v2) {
     var DEGRAD = Math.PI / 180.0;
     var RADDEG = 180.0 / Math.PI;
 
@@ -127,39 +171,18 @@ export const useWeatherStore = defineStore('weather', () => {
     var ro = Math.tan(Math.PI * 0.25 + olat * 0.5);
     ro = (re * sf) / Math.pow(ro, sn);
     var rs = {};
-    if (code == 'toXY') {
-      rs['lat'] = v1;
-      rs['lng'] = v2;
-      var ra = Math.tan(Math.PI * 0.25 + v1 * DEGRAD * 0.5);
-      ra = (re * sf) / Math.pow(ra, sn);
-      var theta = v2 * DEGRAD - olon;
-      if (theta > Math.PI) theta -= 2.0 * Math.PI;
-      if (theta < -Math.PI) theta += 2.0 * Math.PI;
-      theta *= sn;
-      rs['x'] = Math.floor(ra * Math.sin(theta) + XO + 0.5);
-      rs['y'] = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
-    } else {
-      rs['x'] = v1;
-      rs['y'] = v2;
-      var xn = v1 - XO;
-      var yn = ro - v2 + YO;
-      ra = Math.sqrt(xn * xn + yn * yn);
-      if (sn < 0.0) -ra;
-      var alat = Math.pow((re * sf) / ra, 1.0 / sn);
-      alat = 2.0 * Math.atan(alat) - Math.PI * 0.5;
 
-      if (Math.abs(xn) <= 0.0) {
-        theta = 0.0;
-      } else {
-        if (Math.abs(yn) <= 0.0) {
-          theta = Math.PI * 0.5;
-          if (xn < 0.0) -theta;
-        } else theta = Math.atan2(xn, yn);
-      }
-      var alon = theta / sn + olon;
-      rs['lat'] = alat * RADDEG;
-      rs['lng'] = alon * RADDEG;
-    }
+    rs['lat'] = v1;
+    rs['lng'] = v2;
+    var ra = Math.tan(Math.PI * 0.25 + v1 * DEGRAD * 0.5);
+    ra = (re * sf) / Math.pow(ra, sn);
+    var theta = v2 * DEGRAD - olon;
+    if (theta > Math.PI) theta -= 2.0 * Math.PI;
+    if (theta < -Math.PI) theta += 2.0 * Math.PI;
+    theta *= sn;
+    rs['x'] = Math.floor(ra * Math.sin(theta) + XO + 0.5);
+    rs['y'] = Math.floor(ro - ra * Math.cos(theta) + YO + 0.5);
+
     return rs;
   }
 

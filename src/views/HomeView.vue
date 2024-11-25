@@ -17,7 +17,9 @@
           <span class="filter-description">같이 할 친구 지도에서 찾기!</span>
         </div>
       </div>
-      <RouterLink :to="{ name: 'groupadd' }" class="group-add-button">그룹 만들기</RouterLink>
+      <RouterLink :to="{ name: 'groupadd' }" class="group-add-button"
+        >그룹 만들기</RouterLink
+      >
     </div>
 
     <ExerciseMap>맵</ExerciseMap>
@@ -56,8 +58,8 @@ onMounted(() => {
 
 <style scoped>
 .home-container {
-  background-color: #001D3D; /* 배경 색상을 #001D3D로 설정 */
-  color: #FFFFFF; /* 텍스트 색상을 흰색으로 설정하여 가독성 유지 */
+  background-color: #001d3d; /* 배경 색상을 #001D3D로 설정 */
+  color: #ffffff; /* 텍스트 색상을 흰색으로 설정하여 가독성 유지 */
   padding: 20px;
   border-radius: 8px;
 }
@@ -81,32 +83,32 @@ onMounted(() => {
 
 label {
   margin-right: 10px;
-  color: #FFFFFF; /* 레이블 텍스트를 흰색으로 설정 */
+  color: #ffffff; /* 레이블 텍스트를 흰색으로 설정 */
 }
 
 .category-select {
   padding: 10px;
-  border: 2px solid #FFC300; /* 테두리 색상을 노란색으로 설정 */
+  border: 2px solid #ffc300; /* 테두리 색상을 노란색으로 설정 */
   border-radius: 8px;
-  background-color: #FFFFFF; /* 드롭다운 배경색을 흰색으로 설정 */
-  color: #001D3D; /* 텍스트 색상을 네이비로 설정 */
+  background-color: #ffffff; /* 드롭다운 배경색을 흰색으로 설정 */
+  color: #001d3d; /* 텍스트 색상을 네이비로 설정 */
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s, border-color 0.3s;
 }
 
 .category-select:hover {
-  background-color: #F0E68C; /* 마우스를 올렸을 때 배경 색상을 밝은 노란색으로 변경 */
+  background-color: #f0e68c; /* 마우스를 올렸을 때 배경 색상을 밝은 노란색으로 변경 */
   border-color: rgb(255, 255, 255); /* 테두리 색상을 흰색으로 변경 */
 }
 
 .filter-description {
-  color: #FFFFFF; /* span 텍스트를 흰색으로 설정 */
+  color: #ffffff; /* span 텍스트를 흰색으로 설정 */
 }
 
 .group-add-button {
-  background-color: #FFC300; /* 버튼 배경을 노란색으로 설정 */
-  color: #001D3D; /* 텍스트 색상은 네이비로 설정 */
+  background-color: #ffc300; /* 버튼 배경을 노란색으로 설정 */
+  color: #001d3d; /* 텍스트 색상은 네이비로 설정 */
   padding: 10px 20px;
   border-radius: 4px;
   font-weight: bold;
@@ -115,7 +117,7 @@ label {
 }
 
 .group-add-button:hover {
-  background-color: #FFFFFF; /* 마우스를 올렸을 때 버튼 배경 색상을 더 밝은 색으로 변경 */
+  background-color: #ffffff; /* 마우스를 올렸을 때 버튼 배경 색상을 더 밝은 색으로 변경 */
   transform: translateY(-3px); /* 마우스를 올렸을 때 약간 위로 움직임 */
 }
 
