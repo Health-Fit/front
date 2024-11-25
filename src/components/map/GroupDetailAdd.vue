@@ -4,46 +4,61 @@
     <form @submit.prevent="createGroup">
       <label for="group-category">카테고리 :</label>
       <select v-model="groupForAdd.exerciseCategoryId">
-        <option value="all">모든 카테고리</option>
-        <option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
+        <option
+          v-for="category in categoryStore.categories"
+          :key="category.id"
+          :value="category.id"
+        >
           {{ category.name }}
         </option>
       </select>
       <br />
 
       <label for="group-name">그룹 명 :</label>
-      <input type="text" v-model="groupForAdd.name" id="group-name" name="group-name" />
+      <input
+        type="text"
+        v-model="groupForAdd.name"
+        id="group-name"
+        name="group-name"
+      />
       <br />
 
       <label for="group-maxMember">최대 인원 수 :</label>
-      <input type="number" v-model="groupForAdd.maxMember" id="group-maxMember" name="group-maxMember"/>
+      <input
+        type="number"
+        v-model="groupForAdd.maxMember"
+        id="group-maxMember"
+        name="group-maxMember"
+      />
       <br />
 
       <label for="group-descript">그룹 설명 :</label>
-      <textarea v-model="groupForAdd.descript" id="group-descript" name="group-descript"></textarea>
+      <textarea
+        v-model="groupForAdd.descript"
+        id="group-descript"
+        name="group-descript"
+      ></textarea>
       <br />
 
       <!-- 시작 시각 선택 -->
       <label for="group-start-time">시작 시각 :</label>
-      <input 
-        type="datetime-local" 
-        v-model="groupForAdd.startDate" 
-        id="group-start-time" 
+      <input
+        type="datetime-local"
+        v-model="groupForAdd.startDate"
+        id="group-start-time"
       />
       <br />
 
       <!-- 종료 시각 선택 -->
       <label for="group-end-time">종료 시각 :</label>
-      <input 
-        type="datetime-local" 
-        v-model="groupForAdd.endDate" 
-        id="group-end-time" 
+      <input
+        type="datetime-local"
+        v-model="groupForAdd.endDate"
+        id="group-end-time"
       />
       <br />
 
-      <p v-if="formattedDuration">
-        총 {{ formattedDuration }}
-      </p>
+      <p v-if="formattedDuration">총 {{ formattedDuration }}</p>
 
       <button type="submit">생성하기</button>
     </form>
@@ -72,7 +87,6 @@ const calculateTimeDifference = () => {
   const end = new Date(groupForAdd.endDate);
 
   if (start > end) {
-    alert('종료 시간이 시작 시간보다 빨라서는 안 됩니다.');
     groupForAdd.endDate = groupForAdd.startDate; // Reset to start time
     formattedDuration.value = '';
     return;
@@ -80,7 +94,7 @@ const calculateTimeDifference = () => {
 
   const diffInMs = end - start; // Milliseconds difference
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60)); // Convert to minutes
-  
+
   // Convert to days, hours, and minutes
   const days = Math.floor(diffInMinutes / (24 * 60));
   const hours = Math.floor((diffInMinutes % (24 * 60)) / 60);

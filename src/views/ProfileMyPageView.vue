@@ -1,220 +1,343 @@
 <template>
-    <div>
-      <h1>마이 페이지</h1>
-  
-      <!-- 달력 생성 -->
-      <div class="calendar">
-        <div class="calendar-header">
-          <button @click="changeMonth(-1)">◀</button>
-          <h2>{{ monthName }} {{ year }}</h2>
-          <button @click="changeMonth(1)">▶</button>
+  <div>
+    <h1>마이 페이지</h1>
+
+    <!-- 달력 생성 -->
+    <div class="calendar">
+      <div class="calendar-header">
+        <button @click="changeMonth(-1)">◀</button>
+        <h2>{{ monthName }} {{ year }}</h2>
+        <button @click="changeMonth(1)">▶</button>
+      </div>
+
+      <!-- 요일 헤더 -->
+      <div class="weekday-header">
+        <div
+          v-for="(weekday, index) in weekdays"
+          :key="index"
+          class="weekday"
+          :class="{ sunday: index === 0, saturday: index === 6 }"
+        >
+          {{ weekday }}
         </div>
-  
-        <div class="calendar-grid">
-          <!-- 각 날짜 생성 -->
-          <div
-            v-for="day in daysInMonth"
-            :key="day.date"
-            class="calendar-day"
-            :class="{ 'today': isToday(day), 'has-events': hasEvents(day) }"
-          >
-            <!-- 날짜 숫자 -->
-            <span class="day-number">{{ day.date }}</span>
-            <br>
-            <!-- 일정을 나타내는 버튼들 -->
-            <div class="events">
-              <div class="event-buttons">
-                <button
-                  v-for="(event, index) in getEventsForDay(day)"
-                  :key="index"
-                  class="event-button"
-                  @click.stop="showEventDetails(event)"
-                >
-                  {{ event.title }}
-                </button>
-              </div>
+      </div>
+
+      <!-- 날짜 그리드 -->
+      <div class="calendar-grid">
+        <!-- 빈 칸 -->
+        <div
+          v-for="n in firstDayOfMonth"
+          :key="'empty-' + n"
+          class="empty-day"
+        ></div>
+
+        <!-- 실제 날짜 -->
+        <div
+          v-for="day in daysInMonth"
+          :key="day.date"
+          class="calendar-day"
+          :class="{
+            today: isToday(day),
+            'has-events': hasEvents(day),
+            sunday: isSunday(day),
+            saturday: isSaturday(day),
+          }"
+        >
+          <!-- 날짜 숫자 -->
+          <span class="day-number">{{ day.date }}</span>
+          <br />
+          <!-- 일정 버튼 -->
+          <div class="events">
+            <div class="event-buttons">
+              <button
+                v-for="(event, index) in getEventsForDay(day)"
+                :key="index"
+                class="event-button"
+                @click.stop="showEventDetails(event)"
+              >
+                {{ event.title }}
+              </button>
             </div>
           </div>
         </div>
       </div>
-  
-      <!-- 선택한 일정 세부 사항 -->
-      <div v-if="selectedEvent" class="event-details">
-        <h3>{{ selectedEvent.title }} 일정 세부 사항</h3>
-        <p><strong>내용:</strong> {{ selectedEvent.description }}</p>
-        <p><strong>시간:</strong> {{ selectedEvent.time }}</p>
+    </div>
+
+    <!-- 선택한 일정 세부 사항 -->
+    <div v-if="groupStore.selectedMyGroup" class="event-details">
+      <h1>그룹 정보</h1>
+      <img :src="categoryImgUrl" height="50px" />
+      <p>그룹 명 : {{ groupStore.selectedMyGroup.name }}</p>
+      <p>그룹 설명 : {{ groupStore.selectedMyGroup.descript }}</p>
+      <p>그룹장</p>
+      <img
+        :src="groupStore.selectedMyGroupLeader.profileImg"
+        class="user-thumbnail"
+      />
+      <p>멤버</p>
+      <template v-if="groupStore.selectedMyGroupMembers.length > 0">
+        <img
+          v-for="member in groupStore.selectedMyGroupMembers"
+          :src="member.profileImg"
+          :key="member.id"
+          class="user-thumbnail"
+        />
+      </template>
+      <template v-else>
+        <p>멤버 없음</p>
+      </template>
+      <h3>채팅</h3>
+      <div>
+        <!-- 여기에 채팅 창이 들어갈 것임 -->
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed } from 'vue';
-  
-  // 현재 월과 연도
-  const currentDate = ref(new Date());
-  const selectedDay = ref(null);
-  const selectedEvent = ref(null);
-  
-  // 월 변경 함수
-  const changeMonth = (delta) => {
-    const newDate = new Date(currentDate.value);
-    newDate.setMonth(newDate.getMonth() + delta);
-    currentDate.value = newDate;
-  };
-  
-  // 날짜가 오늘인지 확인하는 함수
-  const isToday = (day) => {
-    const today = new Date();
-    return today.getDate() === day.date && today.getMonth() === day.month && today.getFullYear() === day.year;
-  };
-  
-  // 달력의 날짜를 생성하는 함수
-  const daysInMonth = computed(() => {
-    const year = currentDate.value.getFullYear();
-    const month = currentDate.value.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-  
-    const days = [];
-    for (let i = 1; i <= lastDay.getDate(); i++) {
-      days.push({
-        date: i,
-        month: month,
-        year: year,
-        dayOfWeek: new Date(year, month, i).getDay(),
-      });
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue';
+import { useGroupStore } from '@/stores/group';
+import { useCategoryStore } from '@/stores/category';
+import dayjs from 'dayjs';
+
+const groupStore = useGroupStore();
+const categoryStore = useCategoryStore();
+
+// 카테고리 아이콘
+const categoryImgUrl = ref('');
+
+// 현재 월과 연도
+const currentDate = ref(new Date());
+const selectedEvent = ref(null);
+
+// 요일 목록
+const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+
+// 월 변경 함수
+const changeMonth = (delta) => {
+  const newDate = new Date(currentDate.value);
+  newDate.setMonth(newDate.getMonth() + delta);
+  currentDate.value = newDate;
+};
+
+// 오늘인지 확인
+const isToday = (day) => {
+  const today = dayjs();
+  const date = dayjs(`${day.year}-${day.month + 1}-${day.date}`);
+  return today.isSame(date, 'day');
+};
+
+// 토요일인지 확인
+const isSaturday = (day) => {
+  const date = new Date(day.year, day.month, day.date);
+  return date.getDay() === 6;
+};
+
+// 일요일인지 확인
+const isSunday = (day) => {
+  const date = new Date(day.year, day.month, day.date);
+  return date.getDay() === 0;
+};
+
+// 해당 월의 첫 번째 날의 요일 (0: 일요일 ~ 6: 토요일)
+const firstDayOfMonth = computed(() => {
+  const year = currentDate.value.getFullYear();
+  const month = currentDate.value.getMonth();
+  return new Date(year, month, 1).getDay();
+});
+
+// 해당 월의 날짜 생성
+const daysInMonth = computed(() => {
+  const year = currentDate.value.getFullYear();
+  const month = currentDate.value.getMonth();
+  const days = [];
+  const daysInCurrentMonth = dayjs(`${year}-${month + 1}-01`).daysInMonth();
+
+  for (let i = 1; i <= daysInCurrentMonth; i++) {
+    days.push({
+      date: i,
+      month: month,
+      year: year,
+    });
+  }
+  return days;
+});
+
+// 날짜별 이벤트 저장
+const events = ref({});
+
+// 날짜에 이벤트가 있는지 확인
+const hasEvents = (day) => {
+  const key = dayjs(`${day.year}-${day.month + 1}-${day.date}`).format(
+    'YYYY-M-D'
+  );
+  return events.value[key] && events.value[key].length > 0;
+};
+
+// 특정 날짜의 이벤트 가져오기
+const getEventsForDay = (day) => {
+  const key = dayjs(`${day.year}-${day.month + 1}-${day.date}`).format(
+    'YYYY-M-D'
+  );
+  return events.value[key] || [];
+};
+
+// 이벤트 세부 정보 표시
+const showEventDetails = async (event) => {
+  // 그룹 store에서 내 그룹에 관련된 정보를 선택함
+  await groupStore.selectMyGroup(event.groupId);
+  categoryImgUrl.value =
+    '@/src/assets/' +
+    categoryStore.getCategoryString(
+      groupStore.selectedMyGroup.exerciseCategoryId
+    ) +
+    '.png';
+};
+
+// 달 이름 계산
+const monthName = computed(() => {
+  const months = [
+    '1월',
+    '2월',
+    '3월',
+    '4월',
+    '5월',
+    '6월',
+    '7월',
+    '8월',
+    '9월',
+    '10월',
+    '11월',
+    '12월',
+  ];
+  return months[currentDate.value.getMonth()];
+});
+
+// 연도 계산
+const year = computed(() => currentDate.value.getFullYear());
+
+// 그룹 데이터를 이벤트로 변환
+onMounted(async () => {
+  groupStore.selectedMyGroup = null;
+  await groupStore.getMyGroups();
+  await categoryStore.getCategories();
+
+  const myGroups = groupStore.myGroups;
+  events.value = {};
+
+  myGroups.forEach((group) => {
+    const key = dayjs(group.startDate).format('YYYY-M-D');
+    if (!events.value[key]) {
+      events.value[key] = [];
     }
-    return days;
+    events.value[key].push({
+      groupId: group.id,
+      title: group.name,
+      description: group.descript,
+      time: dayjs(group.startDate).format('HH:mm'),
+    });
   });
-  
-  // 날짜별 이벤트 저장
-  const events = ref({
-    // 예시로 일정 추가 (여기서는 하드코딩된 일정입니다)
-    '2024-11-23': [
-      { title: '운동', description: '헬스장 가기', time: '10:00' },
-      { title: '회의', description: '팀 미팅', time: '14:00' },
-      { title: '점심', description: '식사 시간', time: '12:00' },
-      { title: '커피타임', description: '친구와 커피', time: '16:00' },
-    ],
-    '2024-11-24': [
-      { title: '데이트', description: '영화 보기', time: '18:00' },
-    ],
-  });
-  
-  // 선택된 날짜를 설정하는 함수
-  const selectDay = (day) => {
-    selectedDay.value = day;
-    selectedEvent.value = null;  // 새 날짜를 선택하면 이전에 선택된 이벤트 초기화
-  };
-  
-  // 해당 날짜에 일정을 표시할지 여부
-  const hasEvents = (day) => {
-    const key = `${day.year}-${day.month + 1}-${day.date}`;
-    return events.value[key] && events.value[key].length > 0;
-  };
-  
-  // 선택된 날짜의 일정을 가져오는 함수
-  const getEventsForDay = (day) => {
-    const key = `${day.year}-${day.month + 1}-${day.date}`;
-    return events.value[key] || [];
-  };
-  
-  // 클릭한 일정의 세부 사항을 보여주는 함수
-  const showEventDetails = (event) => {
-    selectedEvent.value = event;
-  };
-  
-  // 달의 이름을 계산하는 computed 속성
-  const monthName = computed(() => {
-    const months = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
-    return months[currentDate.value.getMonth()];
-  });
-  
-  // 연도 계산
-  const year = computed(() => currentDate.value.getFullYear());
-  </script>
-  
-  <style scoped>
-  /* 기본 스타일 설정 */
-  .calendar {
-    margin: 20px;
-  }
-  
-  .calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-  }
-  
-  .calendar-day {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* 변경: 내용 왼쪽 정렬 */
-    padding: 8px;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    position: relative;
-    height: 120px; /* 날짜 영역의 고정 크기 */
-    overflow: hidden;
-    user-select: none; /* 날짜 클릭 시 텍스트 선택 방지 */
-  }
-  
-  .calendar-day.today {
-    background-color: #f5a623;
-    color: white;
-  }
-  
-  .day-number {
-    font-size: 14px;
-    color: #888;
-    margin-bottom: 5px;
-    position: absolute; /* 날짜 숫자 위치 변경 */
-    top: 5px;
-    left: 5px;
-  }
-  
-  .events {
-    flex-grow: 1;
-    overflow-y: auto; /* 스크롤 가능하도록 설정 */
-    max-height: 70px; /* 버튼 영역 고정 높이 설정 */
-  }
-  
-  .event-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .event-button {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .event-button:hover {
-    background-color: #45a049;
-  }
-  
-  .event-details {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-  }
-  
-  /* 마우스 커서 변경 */
-  .calendar-day:hover {
-    cursor: default;
-  }
-  
-  </style>
-  
+});
+</script>
+
+<style scoped>
+.user-thumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.calendar {
+  margin: 20px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.weekday-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.weekday {
+  padding: 5px;
+}
+
+.weekday.sunday {
+  color: red;
+}
+
+.weekday.saturday {
+  color: blue;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.empty-day {
+  visibility: hidden;
+}
+
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px;
+  border: 1px solid #ddd;
+  position: relative;
+  height: 120px;
+}
+
+.calendar-day.today {
+  background-color: #f5a623;
+  color: white;
+}
+
+.calendar-day.sunday .day-number {
+  color: red;
+}
+
+.calendar-day.saturday .day-number {
+  color: blue;
+}
+
+.day-number {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.events {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.event-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.event-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.event-details {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+</style>

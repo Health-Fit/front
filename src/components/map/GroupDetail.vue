@@ -1,41 +1,51 @@
 <template>
-  <div >
+  <div>
     <template v-if="groupStore.isShow">
+      <p>날씨정보 :</p>
+
       <h1>그룹 정보</h1>
-    <img :src="categoryImgUrl" height="50px">
-    <p>그룹 명 : {{ groupStore.group.name }}</p>
-    <p>그룹 설명 : {{ groupStore.group.descript }}</p>
-    <p>참여 인원 : {{ groupStore.group.memberIds.length + 1 }} / {{ groupStore.group.maxMember }}</p>
-    <p>그룹장</p>
-    <img :src="groupStore.groupLeader.profileImg" class="user-thumbnail">
-    <p>멤버</p>
-    <template v-if="groupStore.groupMembers.length > 0">
-      <img v-for="member in groupStore.groupMembers" :src="member.profileImg" class="user-thumbnail">
+      <img :src="categoryImgUrl" height="50px" />
+      <p>그룹 명 : {{ groupStore.group.name }}</p>
+      <p>그룹 설명 : {{ groupStore.group.descript }}</p>
+      <p>
+        참여 인원 : {{ groupStore.group.memberIds.length + 1 }} /
+        {{ groupStore.group.maxMember }}
+      </p>
+      <p>그룹장</p>
+      <img :src="groupStore.groupLeader.profileImg" class="user-thumbnail" />
+      <p>멤버</p>
+      <template v-if="groupStore.groupMembers.length > 0">
+        <img
+          v-for="member in groupStore.groupMembers"
+          :src="member.profileImg"
+          :key="member.id"
+          class="user-thumbnail"
+        />
+      </template>
+      <template v-else>
+        <p>멤버 없음</p>
+      </template>
+      <p>시작 일자 : {{ formattedStartDate }}</p>
+      <button @click="joinGroup">참가하기</button><br />
+      <button @click="showRoute(0)">자동차</button>
+      <button @click="showRoute(1)">대중교통</button>
+      <button @click="showRoute(2)">도보</button>
+      <button @click="showRoute(3)">자전거</button>
+      <!-- 길찾기 화면 -->
+      <div v-if="isRouteVisible" class="route-container">
+        <iframe
+          ref="naverMapIframe"
+          :src="routeUrl"
+          width="100%"
+          height="400px"
+          frameborder="0"
+          style="position: relative; z-index: 1"
+        >
+        </iframe>
+        <!-- CSS로 좌측 메뉴 숨기기 -->
+        <div class="overlay"></div>
+      </div>
     </template>
-    <template v-else>
-      <p>멤버 없음</p>
-    </template>
-    <p>시작 일자 : {{ formattedStartDate }}</p>
-    <button @click="joinGroup">참가하기</button><br>
-    <button @click="showRoute(0)">자동차</button>
-    <button @click="showRoute(1)">대중교통</button>
-    <button @click="showRoute(2)">도보</button>
-    <button @click="showRoute(3)">자전거</button>
-    <!-- 길찾기 화면 -->
-    <div v-if="isRouteVisible" class="route-container">
-      <iframe
-        ref="naverMapIframe"
-        :src="routeUrl"
-        width="100%"
-        height="400px"
-        frameborder="0"
-        style="position: relative; z-index: 1;">
-      </iframe>
-      <!-- CSS로 좌측 메뉴 숨기기 -->
-      <div class="overlay"></div>
-    </div>
-    </template>
-    
   </div>
 </template>
 
@@ -43,9 +53,11 @@
 import { watch, ref } from 'vue';
 import { useGroupStore } from '@/stores/group';
 import { useCategoryStore } from '@/stores/category';
+import { useWeatherStore } from '@/stores/weather';
 
 const groupStore = useGroupStore();
 const categoryStore = useCategoryStore();
+const weatherStore = useWeatherStore();
 
 const isShow = ref(false);
 const isRouteVisible = ref(false); // 길찾기 화면 표시 여부
@@ -62,6 +74,12 @@ watch(
         '/src/assets/' +
         categoryStore.getCategoryString(groupStore.group.exerciseCategoryId) +
         '.png';
+
+      weatherStore.getWeather(
+        groupStore.group.lat,
+        groupStore.group.lon,
+        groupStore.group.startDate
+      );
       createRouteURL();
       formatStartDate();
     }
@@ -82,11 +100,11 @@ const createRouteURL = function (routeType) {
         groupStore.group.lon +
         '&elat=' +
         groupStore.group.lat +
-        '&pathType=' + routeType +
+        '&pathType=' +
+        routeType +
         '&showMap=true&etext=' +
         groupStore.group.name.split(' ').join('') +
         '&menu=route&route/public';
-
     },
     () => {
       routeUrl.value =
