@@ -1,8 +1,10 @@
 <template>
   <div class="header-nav">
-    <RouterLink class="logo" :to="{ name: 'home' }"
-      >렛츠 고! 헬스 고!</RouterLink
-    >
+    <!-- 로고 이미지 추가 -->
+    <RouterLink class="logo" :to="{ name: 'home' }">
+      <img src="@/assets/logo.png" alt="렛츠 고! 헬스 고!" class="logo-img" />
+    </RouterLink>
+    
     <!--검색 창과 버튼-->
     <div class="search-box">
       <form @submit.prevent="searchAddress">
@@ -23,7 +25,8 @@
         >로그인/회원가입</RouterLink
       >
       <template v-if="store.isLoggedIn">
-        <img :src="store.member.profileImg" class="user-thumbnail" />
+        <img :src="store.member.profileImg" class="user-thumbnail">
+
         <RouterLink :to="{ name: 'profileUpdate' }"
           >{{ store.member.nickname }}님!</RouterLink
         >
@@ -70,74 +73,64 @@ const searchAddress = async function () {
 <style scoped>
 .header-nav {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background-color: #87ceeb;
-  /* Sky blue */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #FFC300;
+  padding: 10px 20px;
+  border-radius: 8px; /* 모서리를 둥글게 만듭니다 */
 }
 
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
+.logo-img {
+  height: 40px;
+  border-radius: 8px; /* 로고 이미지의 모서리 둥글게 */
+  border: 2px solid #001D3D; /* 로고 이미지에 테두리 추가 */
 }
 
 .search-input {
   padding: 5px 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  outline: none;
+  border: 2px solid #001D3D;
+  border-radius: 8px; /* 검색 입력창의 모서리를 둥글게 */
+  margin-right: 10px;
 }
 
 .search-button {
-  margin-left: 10px;
-  padding: 5px 15px;
-  font-size: 16px;
-  color: white;
-  background-color: #4682b4;
+  background-color: #001D3D;
+  color: #F0C800;
   border: none;
-  border-radius: 4px;
+  padding: 6px 12px;
   cursor: pointer;
-}
-
-.search-button:hover {
-  background-color: #5a9bd5;
-}
-
-.auth-links a,
-.logout-button {
-  margin-left: 15px;
-  font-size: 18px;
-  color: white;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.auth-links a:hover,
-.logout-button:hover {
-  text-decoration: underline;
+  border-radius: 8px; /* 검색 버튼의 모서리를 둥글게 */
 }
 
 .logout-button {
-  font-size: 18px;
-  color: white;
+  background-color: transparent;
+  color: #001D3D;
+  border: 2px solid #001D3D;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 8px; /* 로그아웃 버튼의 모서리를 둥글게 */
 }
 
 .user-thumbnail {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%; /* 사용자 썸네일을 둥글게 (원 형태) */
   margin-right: 10px;
+}
+
+.auth-links {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* 요소 간 간격을 15px로 설정 */
+}
+
+.auth-links .user-thumbnail {
+  margin-right: 10px; /* 썸네일과 닉네임 사이의 간격 */
+}
+
+.auth-links a {
+  margin-right: 15px; /* 닉네임과 로그아웃 버튼 사이의 간격 */
+  color: #001D3D; /* 텍스트 색상을 #001D3D로 변경 */
+  text-decoration: none;
 }
 </style>

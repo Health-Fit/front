@@ -1,18 +1,23 @@
 <template>
   <div class="home-container">
-    <h2>운동 메이트 찾기</h2>
-    <RouterLink :to="{name:'groupadd'}">그룹 추가하기</RouterLink>
-
-    <div class="filter-options">
-      <div class="filter-group">
-        <label for="category">카테고리:</label>
-        <select v-model="selectedCategory">
-          <option value='all'>모든 카테고리</option>
-          <option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
+    <div class="top-section">
+      <div class="filter-options">
+        <div class="filter-group">
+          <label for="category"></label>
+          <select v-model="selectedCategory" class="category-select">
+            <option value="all">모든 운동</option>
+            <option
+              v-for="category in categoryStore.categories"
+              :key="category.id"
+              :value="category.id"
+            >
+              {{ category.name }}
+            </option>
+          </select>
+          <span class="filter-description">같이 할 친구 지도에서 찾기!</span>
+        </div>
       </div>
+      <RouterLink :to="{ name: 'groupadd' }" class="group-add-button">그룹 만들기</RouterLink>
     </div>
 
     <ExerciseMap>맵</ExerciseMap>
@@ -36,7 +41,7 @@ const selectedCategory = ref('all'); // 선택된 카테고리 상태 관리
 
 const applyFilters = (categoryId) => {
   categoryStore.changeCategory(categoryId); // 카테고리 변경
-  videoStore.getVideos(categoryId);         // 비디오 목록 갱신
+  videoStore.getVideos(categoryId); // 비디오 목록 갱신
 };
 
 // 선택된 카테고리 값 변경을 감지
@@ -49,130 +54,76 @@ onMounted(() => {
 });
 </script>
 
-
 <style scoped>
 .home-container {
+  background-color: #001D3D; /* 배경 색상을 #001D3D로 설정 */
+  color: #FFFFFF; /* 텍스트 색상을 흰색으로 설정하여 가독성 유지 */
   padding: 20px;
+  border-radius: 8px;
 }
 
-h2 {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
+.top-section {
+  display: flex;
+  justify-content: space-between; /* 버튼과 필터 옵션이 양쪽 끝에 위치하도록 설정 */
+  align-items: center; /* 요소들이 수직 중앙에 정렬되도록 설정 */
+  margin-bottom: 20px; /* 상단 섹션과 나머지 내용의 간격을 설정 */
 }
 
 .filter-options {
-  display: flex;
-  gap: 30px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  margin-bottom: 0; /* 상단에서 이미 여백을 설정했으므로 필터 옵션에 추가적인 여백을 제거 */
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px; /* 내부 요소들 간의 간격을 10px로 설정 */
 }
 
-.filter-options label {
-  font-size: 16px;
-  color: #444;
-}
-
-.filter-options select {
-  padding: 8px 12px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background-color: #fff;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.filter-options select:hover {
-  background-color: #f1f1f1;
-}
-
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.video-card {
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  height: 380px;
-}
-
-.video-card:hover {
-  transform: scale(1.05);
-}
-
-.card-wrapper {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.card-wrapper:hover {
-  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-.video-thumbnail {
-  width: 100%;
-  height: auto;
-  border-bottom: 1px solid #ddd;
-}
-
-.video-info {
-  display: flex;
-  padding: 10px 15px;
-  flex: 1;
-  justify-content: space-between;
-}
-
-.channel-thumbnail {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+label {
   margin-right: 10px;
+  color: #FFFFFF; /* 레이블 텍스트를 흰색으로 설정 */
 }
 
-.video-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1;
-}
-
-.video-title {
-  font-size: 16px;
+.category-select {
+  padding: 10px;
+  border: 2px solid #FFC300; /* 테두리 색상을 노란색으로 설정 */
+  border-radius: 8px;
+  background-color: #FFFFFF; /* 드롭다운 배경색을 흰색으로 설정 */
+  color: #001D3D; /* 텍스트 색상을 네이비로 설정 */
   font-weight: bold;
-  color: #333;
-  margin-bottom: 4px;
-  line-height: 1.3;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
-.video-channel {
-  font-size: 14px;
-  color: #555;
+.category-select:hover {
+  background-color: #F0E68C; /* 마우스를 올렸을 때 배경 색상을 밝은 노란색으로 변경 */
+  border-color: rgb(255, 255, 255); /* 테두리 색상을 흰색으로 변경 */
 }
 
-.video-stats {
-  font-size: 13px;
-  color: #888;
+.filter-description {
+  color: #FFFFFF; /* span 텍스트를 흰색으로 설정 */
+}
+
+.group-add-button {
+  background-color: #FFC300; /* 버튼 배경을 노란색으로 설정 */
+  color: #001D3D; /* 텍스트 색상은 네이비로 설정 */
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.group-add-button:hover {
+  background-color: #FFFFFF; /* 마우스를 올렸을 때 버튼 배경 색상을 더 밝은 색으로 변경 */
+  transform: translateY(-3px); /* 마우스를 올렸을 때 약간 위로 움직임 */
+}
+
+.group-add-button:active {
+  transform: translateY(0); /* 클릭 시 원래 위치로 돌아옴 */
+}
+
+.RouterLink:hover {
+  text-decoration: underline;
 }
 </style>

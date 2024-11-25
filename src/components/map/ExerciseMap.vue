@@ -1,34 +1,58 @@
 <template>
   <div>
-    <h2>카카오 맵 보기</h2>
     <div class="map_wrap">
       <div id="drawingMap"></div>
       <div id="map"></div>
       <p class="modes">
-        <button @click="setCurCenter">현재 위치</button>
+        <button @click="setCurCenter" class="current-location-button">현재 위치</button>
       </p>
     </div>
   </div>
 </template>
 
 <style scoped>
-#map {
-  width: 100%;
-  height: 400px;
-}
 .map_wrap {
   width: 100%;
+  height: 500px; /* 지도의 높이를 더 키워 더 시원하게 보이도록 설정 */
   position: relative;
+  border-radius: 15px; /* 지도의 모서리를 둥글게 만들어 디자인 개선 */
+  overflow: hidden; /* 둥근 모서리 밖에 요소가 보이지 않도록 설정 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 지도의 그림자를 추가하여 입체감 부여 */
+  margin: 20px 0; /* 지도와 다른 요소들 간의 여백 추가 */
 }
-.modes {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1;
-}
+
 #map {
   width: 100%;
-  height: 350px;
+  height: 100%;
+}
+
+.modes {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 2;
+}
+
+.current-location-button {
+  padding: 10px 15px;
+  border: none;
+  background-color: #FFC300; /* 버튼 배경을 노란색으로 설정 */
+  color: #001D3D; /* 텍스트 색상은 네이비로 설정 */
+  font-weight: bold;
+  border-radius: 8px; /* 버튼 모서리를 둥글게 설정 */
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 버튼에 그림자를 추가하여 입체감을 부여 */
+  transition: background-color 0.3s, color 0.3s, transform 0.2s; /* 호버 시 배경색, 텍스트 색상과 크기 변화 효과 추가 */
+}
+
+.current-location-button:hover {
+  background-color: #001D3D; /* 마우스를 올렸을 때 버튼 배경색을 네이비로 변경 */
+  color: #FFC300; /* 마우스를 올렸을 때 텍스트 색상을 노란색으로 변경 */
+  transform: scale(1.05); /* 마우스를 올렸을 때 살짝 확대되는 효과 */
+}
+
+.current-location-button:active {
+  transform: scale(1); /* 클릭 시 원래 크기로 돌아옴 */
 }
 </style>
 
@@ -60,9 +84,9 @@ watch(
 watch(
   () => categoryStore.selectedCategoryId,
   (newCategoryId) => {
-    if (newCategoryId === 'all'){
+    if (newCategoryId === 'all') {
       searchCondition.value.categoryId = 0;
-    }else{
+    } else {
       searchCondition.value.categoryId = newCategoryId;
     }
   }
@@ -100,8 +124,7 @@ watch(searchCondition.value, async () => {
 // api 불러오기
 const loadScript = () => {
   const script = document.createElement('script');
-  script.src =
-  `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_API_KEY}&autoload=false&libraries=services`
+  script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_API_KEY}&autoload=false&libraries=services`;
   script.onload = () => window.kakao.maps.load(loadMap);
 
   document.head.appendChild(script);
@@ -152,13 +175,11 @@ const initializeMap = (latitude, longitude, container) => {
 const markers = ref([]);
 
 // 지정한 위치에 마커 불러오기
-// 지정한 위치에 여러 개의 마커 생성하기
 const loadMarker = () => {
   // 중복 마커 삭제
   clearMarker();
   if (!groupStore.groups || groupStore.groups.length === 0) return;
 
-  // InfoWindow를 재사용하도록 초기화
   const infowindow = new window.kakao.maps.InfoWindow({
     zIndex: 1, // z-index 설정
   });
@@ -171,10 +192,9 @@ const loadMarker = () => {
       categoryStore.getCategoryString(group.exerciseCategoryId) +
       '.png';
 
-    var imageSize = new kakao.maps.Size(40, 40), // 마커이미지의 크기입니다
-      imageOption = { offset: new kakao.maps.Point(20, 20) }; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+    var imageSize = new kakao.maps.Size(40, 40),
+      imageOption = { offset: new kakao.maps.Point(20, 20) };
 
-    // 마커의 이미지정보를 가지고 있는 마커이미지를 생성합니다
     var markerImage = new kakao.maps.MarkerImage(
       imageSrc,
       imageSize,
@@ -186,25 +206,20 @@ const loadMarker = () => {
       image: markerImage,
     });
 
-    // 마우스오버 이벤트: InfoWindow 열기
     window.kakao.maps.event.addListener(marker, 'mouseover', () => {
       infowindow.setContent(`<div style="padding:5px;">${group.name}</div>`);
       infowindow.open(map.value, marker);
     });
 
-    // 마우스아웃 이벤트: InfoWindow 닫기
     window.kakao.maps.event.addListener(marker, 'mouseout', () => {
       infowindow.close();
     });
 
-    // 마우스클릭 이벤트
     window.kakao.maps.event.addListener(marker, 'click', () => {
       groupStore.selectGroup(group);
     });
 
-    // 지도에 마커 추가
     marker.setMap(map.value);
-    // 마커 배열에 추가.
     markers.value.push(marker);
   });
 };
@@ -243,10 +258,8 @@ onMounted(() => {
 
 // 현재 위치로 중앙 위치 변경
 const setCurCenter = function () {
-  // GeoLocation으로 현재 위치를 받아오고, 해당 위치를 기반으로 화면 중심을 잡는다.
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      // 현재 위치를 성공적으로 가져온 경우
       center_latitude.value = pos.coords.latitude;
       center_longitude.value = pos.coords.longitude;
       var moveLatLon = new kakao.maps.LatLng(
@@ -260,7 +273,6 @@ const setCurCenter = function () {
     }
   );
 
-  // 화면 이동 후에 변경된 위치를 기준으로 값을 받아온다.
   tilesLoad();
 };
 
@@ -268,11 +280,10 @@ const setCurCenter = function () {
 var curPos_Marker;
 
 const setCurMarker = function (pos) {
-  var imageSrc = '/src/assets/curpos.png', // 마커이미지의 주소입니다
-    imageSize = new kakao.maps.Size(40, 55), // 마커이미지의 크기입니다
-    imageOption = { offset: new kakao.maps.Point(20, 40) }; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+  var imageSrc = '/src/assets/curpos.png',
+    imageSize = new kakao.maps.Size(40, 55),
+    imageOption = { offset: new kakao.maps.Point(20, 40) };
 
-  // 마커의 이미지정보를 가지고 있는 마커이미지를 생성합니다
   var markerImage = new kakao.maps.MarkerImage(
       imageSrc,
       imageSize,
@@ -281,15 +292,13 @@ const setCurMarker = function (pos) {
     markerPosition = new kakao.maps.LatLng(
       pos.coords.latitude,
       pos.coords.longitude
-    ); // 마커가 표시될 위치입니다
+    );
 
-  // 마커를 생성합니다
   curPos_Marker = new kakao.maps.Marker({
     position: markerPosition,
-    image: markerImage, // 마커이미지 설정
+    image: markerImage,
   });
 
-  // 마커가 지도 위에 표시되도록 설정합니다
   curPos_Marker.setMap(map.value);
 };
 </script>
