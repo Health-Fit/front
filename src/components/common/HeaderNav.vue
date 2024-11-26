@@ -129,6 +129,7 @@ onBeforeUnmount(() => {
   height: 40px;
   border-radius: 50%;
   margin-right: 10px;
+  border: 2px solid #001D3D; /* 노란색 테두리 추가 */
 }
 
 .auth-links {

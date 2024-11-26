@@ -55,12 +55,12 @@
               <p><strong>그룹 설명 :</strong> {{ groupStore.selectedMyGroup.descript }}</p>
               <div class="group-leader">
                 <p><strong>그룹장 :</strong></p>
-                <img :src="groupStore.selectedMyGroupLeader.profileImg" class="user-thumbnail" />
+                <img :src="groupStore.selectedMyGroupLeader.profileImg ? groupStore.selectedMyGroupLeader.profileImg : '/src/assets/default-profile.png'" class="user-thumbnail" />
               </div>
               <div class="group-members">
                 <p><strong>멤버 :</strong></p>
                 <template v-if="groupStore.selectedMyGroupMembers.length > 0">
-                  <img v-for="member in groupStore.selectedMyGroupMembers" :src="member.profileImg" :key="member.id"
+                  <img v-for="member in groupStore.selectedMyGroupMembers" :src="member.profileImg ? member.profileImg : '/src/assets/default-profile.png'" :key="member.id"
                     class="user-thumbnail" />
                 </template>
                 <template v-else>
@@ -90,19 +90,18 @@
       </div>
     </div>
 
-    <!-- 찜 영상 목록 (캐로셀) -->
-    <div class="liked-videos-carousel">
-      <button @click="prevSlide" class="carousel-button prev-button">◀</button>
-      <div class="carousel-track-container">
-        <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * slideWidth}px)` }">
-          <div v-for="(video, index) in videoStore.likedVideos" :key="index" class="carousel-slide">
-            <img :src="videoStore.getThumbnailUrl(video.url)" alt="Video Thumbnail" class="video-thumbnail" />
-          </div>
-        </div>
-      </div>
-      <button @click="nextSlide" class="carousel-button next-button">▶</button>
+    <!-- 찜 영상 목록 -->
+    <div class="exercise-video-list">
+      <p class="intro-text">찜한 영상</p>
+      <ul class="video-list">
+        <li v-for="video in videoStore.likedVideos" :key="video.id" class="video-container">
+          <a @click.prevent="goToVideo(video.id)" href="#" class="video-link">
+            <img :src="`https://img.youtube.com/vi/${video.url}/maxresdefault.jpg`" alt="Video Thumbnail" class="video-frame" />
+            <div class="click-overlay"></div>
+          </a>
+        </li>
+      </ul>
     </div>
-
   </div>
 </template>
 
@@ -112,24 +111,14 @@ import { useGroupStore } from '@/stores/group';
 import { useVideoStore } from '@/stores/video';
 import { useCategoryStore } from '@/stores/category';
 import { useGroupChatStore } from '@/stores/groupChat';
+import { useRouter } from 'vue-router';
 import dayjs from 'dayjs';
 
 const groupStore = useGroupStore();
 const videoStore = useVideoStore();
 const categoryStore = useCategoryStore();
 const groupChatStore = useGroupChatStore();
-
-const slideWidth = ref(300); // 슬라이드 너비, 필요에 따라 값을 설정
-const currentSlide = ref(0); // 현재 슬라이드 인덱스, 기본값으로 0 설정
-
-// 다음/이전 슬라이드로 이동하는 함수
-const nextSlide = () => {
-  currentSlide.value++;
-};
-
-const prevSlide = () => {
-  currentSlide.value--;
-};
+const router = useRouter();
 
 onMounted(async () => {
   groupStore.selectedMyGroup = null;
@@ -163,6 +152,44 @@ const newChatMessage = ref("");
 const chatMessages = ref(null);
 const polling = ref(false); // 폴링 상태 변수 추가
 
+// 그룹 채팅 조회 함수 (롱폴링 구현)
+const pollChats = async (groupId) => {
+  if (polling.value) return; // 이미 폴링 중이면 중단
+  polling.value = true;
+
+  const poll = async () => {
+    if (!polling.value) return; // 폴링이 중단되었으면 종료
+
+    const lastChatId = groupChatStore.chats.length > 0 ? groupChatStore.chats[groupChatStore.chats.length - 1].id : 0;
+    try {
+      // 채팅 조회
+      await groupChatStore.getChats(groupId, lastChatId);
+      // 조회 후 일정 시간 대기 없이 바로 재요청
+      poll();
+    } catch (error) {
+      console.error('채팅 조회 오류:', error);
+      // 오류 발생 시 일정 시간 대기 후 재시도
+      setTimeout(poll, 1000);
+    }
+  };
+
+  poll();
+};
+
+// 그룹 변경 시 폴링 관리
+watch(
+  () => groupStore.selectedMyGroup,
+  (newGroup, oldGroup) => {
+    if (polling.value) {
+      polling.value = false; // 기존 폴링 중단
+    }
+    groupChatStore.chats = []; // 이전 채팅 데이터 초기화
+    if (newGroup) {
+      pollChats(newGroup.id); // 새로운 그룹의 채팅 폴링 시작
+    }
+  }
+);
+
 // 채팅 메시지 전송 함수
 const sendChatMessage = async () => {
   if (newChatMessage.value.trim() !== "") {
@@ -183,33 +210,6 @@ const sendChatMessage = async () => {
   }
 };
 
-// 채팅 메시지 롱폴링 함수
-const pollChats = async () => {
-  if (polling.value || !groupStore.selectedMyGroup) {
-    return;
-  }
-  polling.value = true; // 폴링이 진행 중임을 표시
-
-  const poll = async () => {
-    if (!polling.value) return; // 폴링이 중단되었으면 종료
-    const lastChatId = groupChatStore.chats.length > 0 ? groupChatStore.chats[groupChatStore.chats.length - 1].id : 0;
-    await groupChatStore.getChats(groupStore.selectedMyGroup.id, lastChatId);
-    scrollToBottom(); // 최신 메시지로 스크롤 이동 보장
-    setTimeout(poll, 500); 
-  };
-
-  poll();
-};
-
-// 그룹 선택 변경 시 폴링 시작
-watch(() => groupStore.selectedMyGroup, (newGroup) => {
-  if (polling.value) {
-    polling.value = false; // 현재 폴링 중지
-  }
-  groupChatStore.chats = []; // 이전 채팅 데이터 초기화
-  pollChats();
-  scrollToBottom();
-});
 
 // 최신 메시지로 스크롤 이동하는 함수
 const scrollToBottom = () => {
@@ -301,7 +301,7 @@ const getEventsForDay = (day) => {
 const showEventDetails = async (event) => {
   await groupStore.selectMyGroup(event.groupId);
   categoryImgUrl.value =
-    '@/src/assets/' +
+    '/src/assets/' +
     categoryStore.getCategoryString(
       groupStore.selectedMyGroup.exerciseCategoryId
     ) +
@@ -458,6 +458,7 @@ const year = computed(() => currentDate.value.getFullYear());
   border-radius: 50%;
   margin-right: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #FFC300; /* 노란색 테두리 추가 */
 }
 
 .calendar {
@@ -568,63 +569,70 @@ const year = computed(() => currentDate.value.getFullYear());
   background-color: #388e3c;
 }
 
-.liked-videos-carousel {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  overflow: hidden;
-  align-self: center;
-  position: relative; /* 버튼을 정확히 배치하기 위해 부모 요소에 상대 위치 설정 */
-}
-
-.carousel-track-container {
-  overflow: hidden;
-  width: 100%;
-}
-
-.carousel-track {
-  display: flex;
-  transition: transform 0.5s ease-in-out;
-}
-
-.carousel-slide {
-  min-width: 300px;
-  margin: 0 10px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+.exercise-video-list {
   text-align: center;
+  margin: 30px 0;
 }
 
-.video-thumbnail {
+.intro-text {
+  font-size: 1.5rem;
+  color: #FFFF;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.video-list {
+  display: flex;
+  flex-wrap: wrap; /* 줄이 넘치면 다음 줄로 배치 */
+  gap: 20px; /* 비디오 카드 사이 간격 설정 */
+  justify-content: center; /* 비디오들을 중앙에 정렬 */
+  padding: 0;
+  list-style-type: none; /* 목록 스타일 제거 */
+}
+
+.video-container {
+  position: relative;
+  width: calc(33.333% - 20px); /* 각 비디오의 너비를 3등분 */
+  max-width: 350px; /* 비디오 카드의 최대 너비 설정 */
+  border-radius: 10px; /* 카드 모서리를 둥글게 설정 */
+  overflow: hidden; /* 카드 경계 밖의 요소 숨기기 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* 그림자 추가하여 입체감 부여 */
+  transition: transform 0.3s, box-shadow 0.3s; /* 호버 시 효과 추가 */
+}
+
+.video-container:hover {
+  transform: translateY(-10px); /* 마우스를 올렸을 때 살짝 올라가는 효과 */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* 마우스를 올렸을 때 그림자 강조 */
+}
+
+.video-link {
+  text-decoration: none;
+}
+
+.video-frame {
   width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-.carousel-button {
-  position: absolute;
-  bottom: 50%;
-  transform: translateY(50%);
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
+  height: auto; /* 이미지 비율 유지하여 전체가 보이도록 설정 */
   border: none;
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  z-index: 2; /* 다른 요소보다 앞에 위치하도록 설정 */
+  border-radius: 10px 10px 0 0; /* 상단 모서리를 둥글게 설정 */
+  display: block;
 }
 
-.prev-button {
-  left: -60px; /* 왼쪽 버튼을 영상 왼쪽에 위치 */
+.click-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent; /* 투명 레이어 */
+  cursor: pointer; /* 클릭 가능한 느낌 제공 */
 }
 
-.next-button {
-  right: -60px; /* 오른쪽 버튼을 영상 오른쪽에 위치 */
+.category-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #FFC300; /* 노란색 테두리 추가 */
 }
-
-.carousel-button:hover {
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
 </style>

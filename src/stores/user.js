@@ -124,9 +124,11 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  const setupMember = async function (categories) {
+  const setupMember = async function (nickname, categories) {
+    member.value.nickname = nickname;
+
     await apiClient.post('/members', {
-      nickname : member.value.nickname,
+      nickname : nickname,
       categories : categories
     });
   };
