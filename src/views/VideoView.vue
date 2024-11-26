@@ -12,8 +12,7 @@
       <h3>실시간 채팅</h3>
       <div ref="chatMessages" class="chat-messages fixed-height">
         <ul>
-          <li v-for="chat in videoChatStore.chats" :key="chat.id" :class="{ 'highlight': chat.isNew }"
-            class="chat-message">
+          <li v-for="chat in currentChats" :key="chat.id" :class="{ 'highlight': chat.isNew }" class="chat-message">
             <strong>{{ chat.nickname }}</strong>: {{ chat.message }}
           </li>
         </ul>
@@ -47,13 +46,12 @@
     </div>
   </div>
 
-
   <!-- 리뷰 정보 화면 -->
   <Review :videoId="videoStore.video.id" />
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue';
+import { ref, onMounted, watch, nextTick, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import { useVideoStore } from '@/stores/video';
@@ -72,9 +70,15 @@ const chatMessages = ref(null);
 const likedImage = new URL('@/assets/liked.png', import.meta.url).href;
 const unlikedImage = new URL('@/assets/unliked.png', import.meta.url).href;
 
+// 현재 비디오의 채팅 데이터를 가져오기 위한 계산 속성
+const currentChats = computed(() => videoChatStore.chats[videoId] || []);
+
 onMounted(() => {
   // 비디오 정보 가져오기
   videoStore.getVideoById(parseInt(videoId));
+
+  // 현재 비디오에 해당하는 채팅 데이터 초기화
+  videoChatStore.clearChats(videoId);
 
   // 실시간 채팅 데이터 가져오기 (롱 폴링)
   const fetchChats = async () => {
@@ -83,12 +87,14 @@ onMounted(() => {
       await videoChatStore.getChats(videoId, lastTimestamp);
 
       // 새로운 채팅이 올라오면 highlight 클래스 추가
-      videoChatStore.chats.forEach((chat) => {
-        chat.isNew = true; // 새로운 채팅 메시지에 표시
-        setTimeout(() => {
-          chat.isNew = false; // 일정 시간이 지나면 highlight 제거
-        }, 1000); // 1초 후 원래 상태로
-      });
+      if (videoChatStore.chats[videoId]) {
+        videoChatStore.chats[videoId].forEach((chat) => {
+          chat.isNew = true; // 새로운 채팅 메시지에 표시
+          setTimeout(() => {
+            chat.isNew = false; // 일정 시간이 지나면 highlight 제거
+          }, 1000); // 1초 후 원래 상태로
+        });
+      }
 
       fetchChats(); // 응답이 오면 바로 다시 호출
     } catch (error) {
@@ -103,7 +109,7 @@ onMounted(() => {
 
 // 채팅 목록 변경 시 자동으로 스크롤을 가장 아래로 이동
 watch(
-  () => videoChatStore.chats,
+  () => currentChats.value,
   () => {
     nextTick(() => {
       if (chatMessages.value) {
@@ -153,7 +159,6 @@ const formatDate = (dateString) => {
 const toggleLike = function () {
   videoStore.like();
 }
-
 </script>
 
 <style scoped>
