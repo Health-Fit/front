@@ -74,11 +74,9 @@ const onSetupMember = async () => {
 
     // 중복 제거 후 signupInfo에 설정
     signupInfo.value.categories = [...new Set(categories)];
-
-    console.log("카테고리 : ", signupInfo.value.categories);
     
     // 회원 정보 설정 후 홈 화면으로 이동
-    await setupMember(signupInfo.value.categories);
+    await setupMember(signupInfo.value.nickname, signupInfo.value.categories);
     router.replace({ name: 'home' });
 };
 </script>

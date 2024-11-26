@@ -1,64 +1,62 @@
 <template>
-  <div>
-    <template v-if="groupStore.isShow">
-      <div v-if="isWeatherOk">
-        <p>날씨정보</p>
-        <p>온도 : {{ tmp }}℃</p>
-        <img :src="sky" />
-        <p>강수확률 : {{ pop }}%</p>
+  <div v-if="groupStore.isShow" class="group-container">
+    <div v-if="groupStore.isShow" class="card">
+      <div class="card" v-if="isWeatherOk">
+        <h2 class="card-title">날씨</h2>
+        <div class="weather-info" v-if="isWeatherOk">
+          <p class="group-description">기온 {{ tmp }}℃</p>
+          <img :src="sky" alt="날씨 이미지" />
+          <p class="group-description">강수확률 {{ pop }}%</p>
+        </div>
       </div>
-      <div v-else>
+      <div class="card" v-else>
         <p>날씨 정보가 없습니다.</p>
       </div>
 
-      <h1>그룹 정보</h1>
-      <img :src="categoryImgUrl" height="50px" />
-      <p>그룹 명 : {{ groupStore.group.name }}</p>
-      <p>그룹 설명 : {{ groupStore.group.descript }}</p>
-      <p>
-        참여 인원 : {{ groupStore.group.memberIds.length + 1 }} /
-        {{ groupStore.group.maxMember }}
-      </p>
-      <p>그룹장</p>
-      <img :src="groupStore.groupLeader.profileImg" class="user-thumbnail" />
-      <p>멤버</p>
-      <template v-if="groupStore.groupMembers.length > 0">
-        <img
-          v-for="member in groupStore.groupMembers"
-          :src="member.profileImg"
-          :key="member.id"
-          class="user-thumbnail"
-        />
-      </template>
-      <template v-else>
-        <p>멤버 없음</p>
-      </template>
-      <p>시작 일자 : {{ formattedStartDate }}</p>
-      <button @click="joinGroup">참가하기</button><br />
-      <button @click="showRoute(1)">대중교통</button>
-      <button @click="showRoute(0)">자동차</button>
-      <button @click="showRoute(3)">도보</button>
-      <button @click="showRoute(2)">자전거</button>
-      <!-- 길찾기 화면 -->
+      <div class="card">
+        <div class="group-info-header"><h2 class="card-title">그룹 정보 <span class="d-day">{{ dDayMessage }}</span></h2></div>
+        <img :src="categoryImgUrl" height="50px" />
+        <p class="group-description">그룹 명 : {{ groupStore.group.name }}</p>
+        <p class="group-description">그룹 설명 : {{ groupStore.group.descript }}</p>
+        <p class="group-description">참여 인원 : {{ groupStore.group.memberIds.length + 1 }} / {{ groupStore.group.maxMember }}</p>
+        <p class="group-description">그룹장</p>
+        <img :src="groupStore.groupLeader.profileImg ? groupStore.groupLeader.profileImg : '/src/assets/default-profile.png'"
+          class="user-thumbnail" />
+        <p class="group-description">시작 일자 : {{ formattedStartDate }}</p>
+        <button @click="joinGroup">참가하기</button>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">멤버</h2>
+        <div class="group-members">
+          <div v-if="groupStore.groupMembers.length > 0">
+            <img v-for="member in groupStore.groupMembers" :src="member.profileImg ? member.profileImg : '/src/assets/default-profile.png'" :key="member.id"
+              class="user-thumbnail" />
+          </div>
+          <div v-else class="group-description">
+            <p>아직 함께 할 멤버가 없어요...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">길찾기</h2>
+        <button @click="showRoute(1)">대중교통</button>
+        <button @click="showRoute(0)">자동차</button>
+        <button @click="showRoute(3)">도보</button>
+        <button @click="showRoute(2)">자전거</button>
+      </div>
+
       <div v-if="isRouteVisible" class="route-container">
-        <iframe
-          ref="naverMapIframe"
-          :src="routeUrl"
-          width="100%"
-          height="400px"
-          frameborder="0"
-          style="position: relative; z-index: 1"
-        >
-        </iframe>
-        <!-- CSS로 좌측 메뉴 숨기기 -->
+        <iframe ref="naverMapIframe" :src="routeUrl" width="100%" height="400px" frameborder="0"></iframe>
         <div class="overlay"></div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { watch, ref } from 'vue';
+import { watch, ref, computed } from 'vue';
 import { useGroupStore } from '@/stores/group';
 import { useCategoryStore } from '@/stores/category';
 import { useWeatherStore } from '@/stores/weather';
@@ -78,6 +76,26 @@ const tmp = ref('');
 const sky = ref('');
 const pop = ref('');
 
+// 디데이 계산
+const dDayMessage = computed(() => {
+  if (groupStore.group.startDate) {
+    const startDate = new Date(groupStore.group.startDate);
+    const currentDate = new Date();
+
+    const timeDifference = startDate - currentDate;
+    const dayDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+
+    if (dayDifference > 0) {
+      return `D-${dayDifference}`;
+    } else if (dayDifference === 0) {
+      return 'D-Day';
+    } else {
+      return `D+${Math.abs(dayDifference)}`;
+    }
+  }
+  return '';
+});
+
 // group 선택이 변경된 것을 감지하여 표시
 watch(
   () => groupStore.group.id,
@@ -88,7 +106,7 @@ watch(
         categoryStore.getCategoryString(groupStore.group.exerciseCategoryId) +
         '.png';
 
-      isWeatherOk.vlaue = false;
+      isWeatherOk.value = false;
 
       const weather = await weatherStore.getWeather(
         groupStore.group.lat,
@@ -102,7 +120,6 @@ watch(
         pop.value = weather.pop;
       }
       isRouteVisible.value = false;
-      //createRouteURL();
       formatStartDate();
     }
   }
@@ -163,13 +180,108 @@ const joinGroup = () => {
 </script>
 
 <style scoped>
-.user-thumbnail {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-right: 10px;
+/* 전체 페이지 스타일 */
+.group-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 15px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* 그룹 정보 카드 */
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 그룹 정보 헤더 스타일 */
+.group-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 디데이 스타일 */
+.d-day {
+  font-size: 1.2em;
+  color: #ff5733;
+  font-weight: bold;
+}
+
+/* 그룹장 및 멤버 이미지 스타일 */
+.user-thumbnail {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin: 5px;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+/* 카드 제목 스타일 */
+.card-title {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* 그룹 설명 스타일 */
+.group-description {
+  font-size: 1em;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+/* 버튼 스타일 통일 */
+button {
+  background-color: #FFC300;
+  color: #001D3D;
+  border: 2px solid #001D3D;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #e59c00;
+}
+
+/* 날씨 정보 스타일 */
+.weather-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.weather-info img {
+  width: 50px;
+  height: 50px;
+  margin-left: 10px;
+}
+
+/* 그룹 멤버 스타일 */
+.group-members {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+/* 길찾기 화면 스타일 */
 .route-container {
   margin-top: 20px;
+  padding: 20px;
+  background-color: #e0f7fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 </style>
