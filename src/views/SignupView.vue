@@ -45,6 +45,7 @@ const selectedVideos = ref([]);
 
 onMounted(async () => {
     await getExampleVideos();
+    console.log(selectedVideos.value)
 });
 
 const toggleVideoSelection = (video) => {
