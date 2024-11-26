@@ -124,9 +124,11 @@ export const useUserStore = defineStore('user', () => {
     }
   };
 
-  const setupMember = async function (signupInfo) {
-    await apiClient.post('/members', signupInfo);
-    member.value.nickname = signupInfo.nickname;
+  const setupMember = async function (categories) {
+    await apiClient.post('/members', {
+      nickname : member.value.nickname,
+      categories : categories
+    });
   };
 
   return { isLoggedIn, member, loginWithKakao, getKakaoToken, loginWithNaver, loginWithGoogle, logout, updateMember, setupMember };

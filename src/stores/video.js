@@ -27,10 +27,8 @@ export const useVideoStore = defineStore('video', () => {
   const exampleVideos = ref([]);
 
   const getExampleVideos = async function () {
-    console.log('가져오기 루트')
     const response = await apiClient.get('/videos/ex');
     exampleVideos.value = response.data;
-    console.log(exampleVideos.value);
   };
 
   const getThumbnailUrl = function (videoUrl) {
@@ -41,5 +39,20 @@ export const useVideoStore = defineStore('video', () => {
     return `https://www.youtube.com/embed/${videoUrl}`;
   }
 
-  return { videos, getVideos, video, getVideoById, getThumbnailUrl, getPlayer, exampleVideos, getExampleVideos };
+  const like = async function () {
+    const response = await apiClient.put('/videos/like', {
+      "videoId": video.value.id,
+      "like": !video.value.liked
+    });
+    video.value.liked = !video.value.liked;
+  };
+
+  const likedVideos = ref([])
+
+  const getLikedVideos = async function () {
+    const response = await apiClient.get('/videos/like');
+    likedVideos.value = response.data;
+  };
+
+  return { videos, getVideos, video, getVideoById, getThumbnailUrl, getPlayer, exampleVideos, getExampleVideos, like, getLikedVideos, likedVideos };
 });

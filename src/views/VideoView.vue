@@ -27,25 +27,25 @@
   </div>
 
   <!-- 비디오 정보 -->
-<div class="video-info">
-  <div class="video-header">
-    <h2 class="video-title">{{ videoStore.video.title }}</h2>
-    <button @click="toggleLike" class="like-button">
-      <img :src="videoStore.video.liked ? likedImage : unlikedImage" alt="좋아요 버튼" />
-    </button>
-  </div>
-  <div class="video-details">
-    <p class="video-views">{{ videoStore.video.viewCnt }} views · {{ formatDate(videoStore.video.regDate) }}</p>
-    <!-- 카테고리 출력 -->
-    <div class="video-categories">
-      <p>
-        <span v-for="(category, index) in videoStore.video.categories" :key="category.id" class="video-category">
-          {{ category.name }}<span v-if="index < videoStore.video.categories.length - 1">, </span>
-        </span>
-      </p>
+  <div class="video-info">
+    <div class="video-header">
+      <h2 class="video-title">{{ videoStore.video.title }}</h2>
+      <button @click="toggleLike" class="like-button">
+        <img :src="videoStore.video.liked ? likedImage : unlikedImage" alt="좋아요 버튼" />
+      </button>
+    </div>
+    <div class="video-details">
+      <p class="video-views">{{ videoStore.video.viewCnt }} views · {{ formatDate(videoStore.video.regDate) }}</p>
+      <!-- 카테고리 출력 -->
+      <div class="video-categories">
+        <p>
+          <span v-for="(category, index) in videoStore.video.categories" :key="category.id" class="video-category">
+            {{ category.name }}<span v-if="index < videoStore.video.categories.length - 1">, </span>
+          </span>
+        </p>
+      </div>
     </div>
   </div>
-</div>
 
 
   <!-- 리뷰 정보 화면 -->
@@ -151,7 +151,7 @@ const formatDate = (dateString) => {
 };
 
 const toggleLike = function () {
-
+  videoStore.like();
 }
 
 </script>
@@ -321,7 +321,8 @@ const toggleLike = function () {
 }
 
 .video-title {
-  margin-right: 10px; /* 제목과 좋아요 버튼 사이에 약간의 여백 추가 */
+  margin-right: 10px;
+  /* 제목과 좋아요 버튼 사이에 약간의 여백 추가 */
 }
 
 .like-button {
@@ -332,12 +333,14 @@ const toggleLike = function () {
 }
 
 .like-button img {
-  width: 30px; /* 이미지 크기를 30px로 설정 */
+  width: 30px;
+  /* 이미지 크기를 30px로 설정 */
   height: 30px;
   transition: transform 0.2s ease;
 }
 
 .like-button:hover img {
-  transform: scale(1.1); /* 버튼에 마우스를 올리면 살짝 확대 */
+  transform: scale(1.1);
+  /* 버튼에 마우스를 올리면 살짝 확대 */
 }
 </style>

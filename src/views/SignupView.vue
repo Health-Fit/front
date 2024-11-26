@@ -37,7 +37,7 @@ const { getExampleVideos, getThumbnailUrl } = videoStore;
 
 const signupInfo = ref({
     nickname: '',
-    categoryIds: [],
+    categories: [],
 });
 
 const exampleVideos = ref([]);
@@ -69,15 +69,16 @@ const onSetupMember = async () => {
         return;
     }
 
-    // 선택된 영상들의 카테고리 중 중복 제거 후 설정
-    signupInfo.value.categoryIds = [
-        ...new Set(selectedVideos.value.flatMap((video) => video.categoryIds)),
-    ];
+    // 선택된 영상들의 category1과 category2를 모두 categories 배열에 추가
+    let categories = selectedVideos.value.flatMap(video => [video.category1, video.category2]);
 
-    console.log("카테고리 : ", signupInfo.value.categoryIds)
+    // 중복 제거 후 signupInfo에 설정
+    signupInfo.value.categories = [...new Set(categories)];
 
+    console.log("카테고리 : ", signupInfo.value.categories);
+    
     // 회원 정보 설정 후 홈 화면으로 이동
-    await setupMember(signupInfo.value);
+    await setupMember(signupInfo.value.categories);
     router.replace({ name: 'home' });
 };
 </script>

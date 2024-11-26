@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useReviewStore } from '@/stores/review';
 import { useUserStore } from '@/stores/user';
 
@@ -74,7 +74,15 @@ const props = defineProps({
   },
 });
 
-const reviews = computed(() => reviewStore.state.reviews.filter(review => review.exerciseVideoId === props.videoId));
+onMounted(() => {
+  reviewStore.getReviews(props.videoId);
+});
+
+const reviews = computed(() => {
+  return Array.isArray(reviewStore.state.reviews)
+    ? reviewStore.state.reviews.filter(review => review.exerciseVideoId === props.videoId)
+    : [];
+});
 const newReview = ref({ content: '', rating: 0, exerciseVideoId: -1, regDate: 0 });
 
 watch(() => props.videoId, (newVideoId) => {
@@ -260,12 +268,16 @@ h3 {
 }
 
 .submit-button:disabled {
-  background-color: #ddd; /* 비활성화된 버튼의 배경색 */
-  color: #aaa; /* 비활성화된 버튼의 텍스트 색 */
-  cursor: not-allowed; /* 비활성화된 상태에서 커서 */
+  background-color: #ddd;
+  /* 비활성화된 버튼의 배경색 */
+  color: #aaa;
+  /* 비활성화된 버튼의 텍스트 색 */
+  cursor: not-allowed;
+  /* 비활성화된 상태에서 커서 */
 }
 
 .submit-button:disabled:hover {
-  background-color: #ddd; /* 비활성화된 상태에서 hover 시 색상 */
+  background-color: #ddd;
+  /* 비활성화된 상태에서 hover 시 색상 */
 }
 </style>

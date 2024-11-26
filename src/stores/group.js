@@ -101,7 +101,7 @@ export const useGroupStore = defineStore('group', () => {
   // -------------------------------------------------------- 마이페이지 코드 -----------------------------------------------------------
 
   // 마이페이지에 관련된 그룹 관리
-  const myGroups = ref({});
+  const myGroups = ref([]);
 
   // 그룹에 대한 정보를 검색 및 전달
   const getMyGroups = async function () {
