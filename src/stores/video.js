@@ -27,8 +27,10 @@ export const useVideoStore = defineStore('video', () => {
   const exampleVideos = ref([]);
 
   const getExampleVideos = async function () {
+    console.log('가져오기 루트')
     const response = await apiClient.get('/videos/ex');
     exampleVideos.value = response.data;
+    console.log(exampleVideos.value);
   };
 
   const getThumbnailUrl = function (videoUrl) {
