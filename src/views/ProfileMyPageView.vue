@@ -1,53 +1,51 @@
 <template>
-  <div>
-    <h1 class="main-header">마이 페이지</h1>
+  <div class="container">
+    <div class="main-content">
 
-    <!-- 달력 생성 -->
-    <div class="calendar">
-      <div class="calendar-header">
-        <button @click="changeMonth(-1)" class="calendar-nav-button">◀</button>
-        <h2>{{ monthName }} {{ year }}</h2>
-        <button @click="changeMonth(1)" class="calendar-nav-button">▶</button>
-      </div>
-
-      <!-- 요일 헤더 -->
-      <div class="weekday-header">
-        <div v-for="(weekday, index) in weekdays" :key="index" class="weekday"
-          :class="{ sunday: index === 0, saturday: index === 6 }">
-          {{ weekday }}
+      <!-- 달력 생성 -->
+      <div class="calendar">
+        <div class="calendar-header">
+          <button @click="changeMonth(-1)" class="calendar-nav-button">◀</button>
+          <h2>{{ monthName }} {{ year }}</h2>
+          <button @click="changeMonth(1)" class="calendar-nav-button">▶</button>
         </div>
-      </div>
 
-      <!-- 날짜 그리드 -->
-      <div class="calendar-grid">
-        <!-- 빈 칸 -->
-        <div v-for="n in firstDayOfMonth" :key="'empty-' + n" class="empty-day"></div>
+        <!-- 요일 헤더 -->
+        <div class="weekday-header">
+          <div v-for="(weekday, index) in weekdays" :key="index" class="weekday" :class="{ sunday: index === 0, saturday: index === 6 }">
+            {{ weekday }}
+          </div>
+        </div>
 
-        <!-- 실제 날짜 -->
-        <div v-for="day in daysInMonth" :key="day.date" class="calendar-day" :class="{
-          today: isToday(day),
-          'has-events': hasEvents(day),
-          sunday: isSunday(day),
-          saturday: isSaturday(day),
-        }">
-          <!-- 날짜 숫자 -->
-          <span class="day-number">{{ day.date }}</span>
-          <!-- 일정 버튼 -->
-          <div class="events">
-            <div class="event-buttons">
-              <button v-for="(event, index) in getEventsForDay(day)" :key="index" class="event-button"
-                @click.stop="showEventDetails(event)">
-                {{ event.title }}
-              </button>
+        <!-- 날짜 그리드 -->
+        <div class="calendar-grid">
+          <!-- 빈 칸 -->
+          <div v-for="n in firstDayOfMonth" :key="'empty-' + n" class="empty-day"></div>
+
+          <!-- 실제 날짜 -->
+          <div v-for="day in daysInMonth" :key="day.date" class="calendar-day" :class="{
+            today: isToday(day),
+            'has-events': hasEvents(day),
+            sunday: isSunday(day),
+            saturday: isSaturday(day),
+          }">
+            <!-- 날짜 숫자 -->
+            <span class="day-number">{{ day.date }}</span>
+            <!-- 일정 버튼 -->
+            <div class="events">
+              <div class="event-buttons">
+                <button v-for="(event, index) in getEventsForDay(day)" :key="index" class="event-button" @click.stop="showEventDetails(event)">
+                  {{ event.title }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 선택한 일정 세부 사항 -->
-    <div v-if="groupStore.selectedMyGroup" class="event-details">
-      <h1 class="main-header">그룹 정보</h1>
+    <!-- 그룹 정보 섹션 -->
+    <div v-if="groupStore.selectedMyGroup" class="group-details">
       <div class="group-info">
         <img :src="categoryImgUrl" class="category-thumbnail" />
         <div class="group-info-text">
@@ -60,8 +58,7 @@
           <div class="group-members">
             <p><strong>멤버 :</strong></p>
             <template v-if="groupStore.selectedMyGroupMembers.length > 0">
-              <img v-for="member in groupStore.selectedMyGroupMembers" :src="member.profileImg" :key="member.id"
-                class="user-thumbnail" />
+              <img v-for="member in groupStore.selectedMyGroupMembers" :src="member.profileImg" :key="member.id" class="user-thumbnail" />
             </template>
             <template v-else>
               <p>멤버 없음</p>
@@ -69,9 +66,20 @@
           </div>
         </div>
       </div>
-      <h3>채팅</h3>
-      <div class="chat-section">
-        <!-- 여기에 채팅 창이 들어갈 것임 -->
+
+      <!-- 채팅 섹션 -->
+      <div v-if="groupStore.selectedMyGroup" class="chat-section">
+        <h3>실시간 채팅</h3>
+        <div ref="chatMessages" class="chat-messages">
+          <div v-for="chat in groupChatStore.chats" :key="chat.id" :class="{ 'highlight': chat.isNew }" class="chat-message">
+            <img :src="chat.profileImg" alt="profile" class="chat-profile-img" />
+            <strong>{{ chat.nickname }}</strong>: {{ chat.message }}
+          </div>
+        </div>
+        <div class="chat-input-container">
+          <input type="text" placeholder="채팅..." v-model="newChatMessage" @keyup.enter="sendChatMessage" class="chat-input" />
+          <button @click="sendChatMessage" class="chat-send-button">전송</button>
+        </div>
       </div>
     </div>
   </div>
@@ -81,10 +89,84 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useGroupStore } from '@/stores/group';
 import { useCategoryStore } from '@/stores/category';
+import { useGroupChatStore } from '@/stores/groupChat';
 import dayjs from 'dayjs';
 
 const groupStore = useGroupStore();
 const categoryStore = useCategoryStore();
+const groupChatStore = useGroupChatStore();
+
+// 그룹 채팅
+const newChatMessage = ref("");
+const chatMessages = ref(null);
+const polling = ref(false); // 폴링 상태 변수 추가
+
+// 채팅 메시지 전송 함수
+const sendChatMessage = async () => {
+  if (newChatMessage.value.trim() !== "") {
+    const data = {
+      message: newChatMessage.value,
+    };
+    await groupChatStore.sendChat(data, groupStore.selectedMyGroup.id);
+    newChatMessage.value = "";
+
+    // 새로운 채팅이 추가된 후 최신 메시지에 하이라이트 적용
+    setTimeout(() => {
+      const lastChatIndex = groupChatStore.chats.length - 1;
+      if (lastChatIndex >= 0) {
+        groupChatStore.chats[lastChatIndex].isNew = true;
+        setTimeout(() => {
+          groupChatStore.chats[lastChatIndex].isNew = false;
+        }, 1000); // 1초 후 하이라이트 제거
+      }
+      scrollToBottom(); // 최신 메시지로 스크롤 이동
+    }, 100); // 채팅 목록 업데이트 후 하이라이트 적용
+  }
+};
+
+// 채팅 메시지 롱폴링 함수
+const pollChats = async () => {
+  if (polling.value || !groupStore.selectedMyGroup) {
+    return;
+  }
+  polling.value = true; // 폴링이 진행 중임을 표시
+
+  const poll = async () => {
+    const lastChatId = groupChatStore.chats.length > 0 ? groupChatStore.chats[groupChatStore.chats.length - 1].id : 0;
+    await groupChatStore.getChats(groupStore.selectedMyGroup.id, lastChatId);
+    scrollToBottom(); // 최신 메시지로 스크롤 이동
+    setTimeout(poll, 3000); // 3초마다 채팅 목록 가져오기
+  };
+
+  poll();
+};
+
+// 최신 메시지로 스크롤 이동하는 함수
+const scrollToBottom = () => {
+  if (chatMessages.value) {
+    chatMessages.value.scrollTop = chatMessages.value.scrollHeight;
+  }
+};
+
+// 컴포넌트가 마운트될 때 데이터 가져오기 및 폴링 시작
+onMounted(async () => {
+  groupStore.selectedMyGroup = null;
+  await groupStore.getMyGroups();
+  await categoryStore.getCategories();
+
+  if (groupStore.selectedMyGroup) {
+    pollChats(); // 채팅 폴링 시작
+  }
+
+  scrollToBottom(); // 초기화 시 최신 메시지로 스크롤 이동
+});
+
+// 그룹 선택 변경 시 폴링 시작
+watch(() => groupStore.selectedMyGroup, (newGroup) => {
+  if (newGroup && !polling.value) {
+    pollChats(); // 그룹이 선택되면 채팅 폴링 시작
+  }
+});
 
 // 카테고리 아이콘
 const categoryImgUrl = ref('');
@@ -167,7 +249,6 @@ const getEventsForDay = (day) => {
 
 // 이벤트 세부 정보 표시
 const showEventDetails = async (event) => {
-  // 그룹 store에서 내 그룹에 관련된 정보를 선택함
   await groupStore.selectMyGroup(event.groupId);
   categoryImgUrl.value =
     '@/src/assets/' +
@@ -224,6 +305,125 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start; /* 상단을 기준으로 요소를 정렬 */
+  justify-content: center; /* 요소들이 수평으로 중앙에 위치하도록 설정 */
+  height: 100%; 
+  padding: 20px; /* 좌우 여백 추가 */
+}
+
+.main-content {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-grow: 1; 
+  height: auto; 
+}
+
+.group-details {
+  flex: 1;
+  max-width: 400px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: auto; 
+  margin-left: 20px; /* 좌측 여백 추가 */
+  align-self: flex-start; /* 상단 기준으로 정렬 */
+  margin-top: 20px; /* 살짝 더 아래로 이동 */
+}
+
+.group-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  background-color: #f7f7f7;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.chat-section {
+  margin-top: 20px;
+  margin-left: 10px; /* 좌측 여백 추가하여 벽에서 띄움 */
+  border: 1px solid #333; /* 어두운 테두리 */
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #1e1e1e; /* 어두운 배경색 */
+  color: #f1f1f1; /* 텍스트 색상을 밝게 */
+}
+
+.chat-messages {
+  height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #2b2b2b; /* 더 어두운 배경색 */
+  border-bottom: 1px solid #444; /* 어두운 테두리 */
+  scroll-behavior: smooth; /* 스크롤 동작을 부드럽게 설정 */
+}
+
+.chat-message {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  background-color: #3e3e3e; /* 메세지의 배경색을 다크 톤으로 */
+  transition: background-color 0.3s;
+}
+
+.chat-message.highlight {
+  background-color: #847d44; /* 연한 노란색 하이라이트 효과 */
+  transition: background-color 1s ease;
+}
+
+.chat-profile-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chat-input-container {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #1e1e1e; /* 입력 부분의 배경색을 어둡게 */
+}
+
+.chat-input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #444; /* 어두운 테두리 */
+  border-radius: 4px;
+  background-color: #2b2b2b; /* 입력창 배경 어두운색 */
+  color: #f1f1f1; /* 입력 텍스트 밝게 */
+}
+
+.chat-send-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chat-send-button:hover {
+  background-color: #0056b3;
+}
+
 .user-thumbnail {
   width: 40px;
   height: 40px;
@@ -364,6 +564,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 20px;
+  background-color: #f7f7f7;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .group-info-text {
@@ -377,9 +582,9 @@ onMounted(async () => {
 
 .main-header {
   font-size: 2rem;
-  color: #007bff;
   text-align: center;
   margin-bottom: 20px;
   font-weight: bold;
 }
+
 </style>

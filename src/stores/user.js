@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { defineStore } from 'pinia';
 import apiClient from './apiClient';
 import router from '@/router';
@@ -16,6 +16,25 @@ export const useUserStore = defineStore('user', () => {
     birth: '',
     tel: '',
     descript: ''
+  });
+
+  // 페이지 새로고침 시 로그인 상태 복원
+  onMounted(() => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    const accessToken = localStorage.getItem('accessToken');
+    if (refreshToken && accessToken) {
+      isLoggedIn.value = true;
+
+      const memberData = JSON.parse(localStorage.getItem('member'));
+      if (memberData) {
+        member.value = memberData;
+
+        // 프로필 이미지가 없거나 잘못된 경우 기본 이미지 설정
+        if (!member.value.profileImg) {
+          member.value.profileImg = '/path/to/default/profile/image.png'; // 기본 이미지 경로 설정
+        }
+      }
+    }
   });
 
   // 카카오 로그인 요청 (리다이렉트)
@@ -39,6 +58,7 @@ export const useUserStore = defineStore('user', () => {
       // 로컬스토리지에 토큰 저장
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('member', JSON.stringify(memberData));
 
       // 상태 갱신
       isLoggedIn.value = true;
@@ -78,6 +98,7 @@ export const useUserStore = defineStore('user', () => {
       .then(() => {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('member');
 
         isLoggedIn.value = false;
 

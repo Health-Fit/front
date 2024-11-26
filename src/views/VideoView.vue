@@ -12,7 +12,8 @@
       <h3>실시간 채팅</h3>
       <div ref="chatMessages" class="chat-messages fixed-height">
         <ul>
-          <li v-for="chat in videoChatStore.chats" :key="chat.id" :class="{'highlight': chat.isNew}" class="chat-message">
+          <li v-for="chat in videoChatStore.chats" :key="chat.id" :class="{ 'highlight': chat.isNew }"
+            class="chat-message">
             <strong>{{ chat.nickname }}</strong>: {{ chat.message }}
           </li>
         </ul>
@@ -26,20 +27,26 @@
   </div>
 
   <!-- 비디오 정보 -->
-  <div class="video-info">
+<div class="video-info">
+  <div class="video-header">
     <h2 class="video-title">{{ videoStore.video.title }}</h2>
-    <div class="video-details">
-      <p class="video-views">{{ videoStore.video.viewCnt }}뷰 · {{ formatDate(videoStore.video.regDate) }}</p>
-      <!-- 카테고리 출력 -->
-      <div class="video-categories">
-        <p>
-          <span v-for="(category, index) in videoStore.video.categories" :key="category.id" class="video-category">
-            {{ category.name }}<span v-if="index < videoStore.video.categories.length - 1">, </span>
-          </span>
-        </p>
-      </div>
+    <button @click="toggleLike" class="like-button">
+      <img :src="videoStore.video.liked ? likedImage : unlikedImage" alt="좋아요 버튼" />
+    </button>
+  </div>
+  <div class="video-details">
+    <p class="video-views">{{ videoStore.video.viewCnt }} views · {{ formatDate(videoStore.video.regDate) }}</p>
+    <!-- 카테고리 출력 -->
+    <div class="video-categories">
+      <p>
+        <span v-for="(category, index) in videoStore.video.categories" :key="category.id" class="video-category">
+          {{ category.name }}<span v-if="index < videoStore.video.categories.length - 1">, </span>
+        </span>
+      </p>
     </div>
   </div>
+</div>
+
 
   <!-- 리뷰 정보 화면 -->
   <Review :videoId="videoStore.video.id" />
@@ -61,6 +68,9 @@ const route = useRoute();
 const videoId = route.params.id;
 
 const chatMessages = ref(null);
+
+const likedImage = new URL('@/assets/liked.png', import.meta.url).href;
+const unlikedImage = new URL('@/assets/unliked.png', import.meta.url).href;
 
 onMounted(() => {
   // 비디오 정보 가져오기
@@ -139,6 +149,11 @@ const formatDate = (dateString) => {
   // 포맷을 'YYYY년 MM월 DD일 HH:mm' 형식으로 변환
   return `${year}년 ${month}월 ${day}일 ${hours}시 ${minutes < 10 ? '0' + minutes : minutes}분 업로드`;
 };
+
+const toggleLike = function () {
+
+}
+
 </script>
 
 <style scoped>
@@ -156,7 +171,8 @@ const formatDate = (dateString) => {
 
 .video-frame {
   width: 100%;
-  height: 400px;
+  height: 500px;
+  /* 높이를 500px로 늘려 채팅 창보다 조금 더 크게 설정 */
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -169,6 +185,8 @@ const formatDate = (dateString) => {
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 20px;
+  height: 450px;
+  /* 채팅 창 높이는 기존과 동일하게 유지 */
 }
 
 .chat-messages.fixed-height {
@@ -244,13 +262,6 @@ const formatDate = (dateString) => {
   color: #333;
 }
 
-.video-title {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-}
-
 .video-details {
   font-size: 1rem;
   color: #555;
@@ -266,9 +277,67 @@ const formatDate = (dateString) => {
 }
 
 .video-category {
-  background-color: #f0f0f0;
+  background-color: #001D3D;
+  /* 배경색을 #001D3D로 설정 */
+  color: #FFC300;
+  /* 글자 색상을 #FFC300으로 설정 */
   padding: 5px 10px;
   border-radius: 5px;
   margin-right: 5px;
+  font-weight: bold;
+}
+
+.chat-messages.fixed-height {
+  flex: none;
+  height: 300px;
+  overflow-y: scroll;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  list-style: none;
+  /* 목록 기호 없애기 */
+}
+
+.chat-messages ul {
+  list-style: none;
+  /* ul 태그의 기본 목록 기호 없애기 */
+  padding: 0;
+  /* 기본 패딩 제거 */
+  margin: 0;
+  /* 기본 마진 제거 */
+}
+
+.chat-message {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  transition: background-color 0.5s ease;
+}
+
+.video-header {
+  display: flex;
+  align-items: center;
+}
+
+.video-title {
+  margin-right: 10px; /* 제목과 좋아요 버튼 사이에 약간의 여백 추가 */
+}
+
+.like-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.like-button img {
+  width: 30px; /* 이미지 크기를 30px로 설정 */
+  height: 30px;
+  transition: transform 0.2s ease;
+}
+
+.like-button:hover img {
+  transform: scale(1.1); /* 버튼에 마우스를 올리면 살짝 확대 */
 }
 </style>
