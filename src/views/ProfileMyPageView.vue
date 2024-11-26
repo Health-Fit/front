@@ -119,6 +119,18 @@ const videoStore = useVideoStore();
 const categoryStore = useCategoryStore();
 const groupChatStore = useGroupChatStore();
 
+const slideWidth = ref(300); // 슬라이드 너비, 필요에 따라 값을 설정
+const currentSlide = ref(0); // 현재 슬라이드 인덱스, 기본값으로 0 설정
+
+// 다음/이전 슬라이드로 이동하는 함수
+const nextSlide = () => {
+  currentSlide.value++;
+};
+
+const prevSlide = () => {
+  currentSlide.value--;
+};
+
 onMounted(async () => {
   groupStore.selectedMyGroup = null;
 
@@ -143,13 +155,6 @@ onMounted(async () => {
       time: dayjs(group.startDate).format('HH:mm'),
     });
   });
-
-  // // 선택된 그룹이 있으면 채팅 폴링 시작
-  // if (groupStore.selectedMyGroup) {
-  //   pollChats();
-  // }
-
-  // // 초기화 시 최신 메시지로 스크롤 이동
   // setTimeout(scrollToBottom, 500)
 });
 
@@ -174,7 +179,7 @@ const sendChatMessage = async () => {
       setTimeout(() => {
         groupChatStore.chats = groupChatStore.chats.map(chat => ({ ...chat, isNew: false }));
       }, 500); // 1초 후 하이라이트 제거
-    }, 500); // 새로운 채팅이 추가된 후 500ms 후에 하이라이트 적용
+    }, 100); // 새로운 채팅이 추가된 후 500ms 후에 하이라이트 적용
   }
 };
 
@@ -202,9 +207,8 @@ watch(() => groupStore.selectedMyGroup, (newGroup) => {
     polling.value = false; // 현재 폴링 중지
   }
   groupChatStore.chats = []; // 이전 채팅 데이터 초기화
-  if (newGroup) {
-    pollChats(); // 그룹이 선택되면 채팅 폴링 시작
-  }
+  pollChats();
+  scrollToBottom();
 });
 
 // 최신 메시지로 스크롤 이동하는 함수
